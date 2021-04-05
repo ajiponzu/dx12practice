@@ -59,8 +59,17 @@ CD3DX12_RESOURCE_BARRIER gBarrier{};
 
 //GPUリソース(パイプライン外)まわり
 constexpr UINT gTextureNum = 1;
-ComPtr<ID3D12DescriptorHeap> gTexDescHeap;
-ComPtr<ID3D12Resource> gTexBuffer; //Render内で呼ばれないが，どうやらgTexDescHeapと同じライフタイムが必要らしい
+constexpr UINT gConstantBufferNum = 1;
+ComPtr<ID3D12DescriptorHeap> gResourceDescHeap;
+ComPtr<ID3D12Resource> gTexBuffer;
+//Render内で呼ばれないが，ディスクリプタ(あるいはビュー)はバッファの命令インターフェイスみたいなもの
+//本体が生存していなければエラー
+ComPtr<ID3D12Resource> gConstantBuffer;
+XMMATRIX gWorldMat{};
+XMMATRIX gViewMat{};
+XMMATRIX gProjectionMat{};
+XMMATRIX* gMapMatrix = nullptr; //マップ用，アップデートで変換するためにスコープを拡張
+float gAngle = 0.0f;
 
 //グラフィクスパイプラインステートまわり
 ComPtr<ID3D12Resource> gVertBuffer;
@@ -263,7 +272,7 @@ void CreateBackBufferAndRTV()
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
 #ifdef _DEBUG
 	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-#elif
+#else
 	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 #endif
 	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
@@ -338,13 +347,51 @@ size_t AlignmentedSize(size_t size, size_t alignment) {
 }
 
 /// <summary>
-/// GPUへ送るテクスチャデータを作成する
+/// ルートシグネチャの作成, パイプライン外リソースの作成・送信
 /// </summary>
-void CreateTextureResource()
+void CreateAppResources()
 {
+	std::vector<CD3DX12_DESCRIPTOR_RANGE> descTblRange{}; //ベクターにすれば，汎用性が向上する？
+	//テクスチャ用
+	descTblRange.push_back(CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, gTextureNum, 0));
+	//行列用
+	descTblRange.push_back(CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, gConstantBufferNum, 0));
+
+	D3D12_ROOT_PARAMETER rootParam{};
+	rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParam.DescriptorTable.pDescriptorRanges = &descTblRange[0];
+	rootParam.DescriptorTable.NumDescriptorRanges = static_cast<UINT>(descTblRange.size());
+	rootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+
+	D3D12_STATIC_SAMPLER_DESC samplerDesc{};
+	samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+	samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
+	samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+	samplerDesc.MinLOD = 0.0f;
+	samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+	samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+	auto rootSignatureDesc = CD3DX12_ROOT_SIGNATURE_DESC(
+		1, &rootParam, gTextureNum, &samplerDesc, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
+	);
+	ComPtr<ID3DBlob> rootSignatureBlob;
+	ComPtr<ID3DBlob> errorBlob;
+	ThrowIfFailed(::D3D12SerializeRootSignature(
+		&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, &rootSignatureBlob, &errorBlob
+	));
+	ThrowIfFailed(gDevice->CreateRootSignature(
+		0, rootSignatureBlob->GetBufferPointer(), rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&gRootSignature)
+	));
+
+	/*テクスチャ*/
+
 	TexMetadata metadata{};
 	ScratchImage scratchImg{};
-	ThrowIfFailed(LoadFromWICFile(L"assets/textest200x200.png", WIC_FLAGS_NONE, &metadata, scratchImg));
+	//ThrowIfFailed(LoadFromWICFile(L"assets/textest200x200.png", WIC_FLAGS_NONE, &metadata, scratchImg));
+	ThrowIfFailed(LoadFromWICFile(L"assets/textest.png", WIC_FLAGS_NONE, &metadata, scratchImg));
 	auto img = scratchImg.GetImage(0, 0, 0);
 
 	//CPUとGPU間のバッファ
@@ -427,12 +474,40 @@ void CreateTextureResource()
 	src.PlacedFootprint.Footprint.RowPitch = static_cast<UINT>(AlignmentedSize(img->rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT));
 	src.PlacedFootprint.Footprint.Format = img->format;
 
+	/*end*/
+
+	/*行列*/
+	gWorldMat = XMMatrixRotationY( XM_PIDIV4 );
+	XMFLOAT3 eye(0.0f, 0.0f, -5.0f);
+	XMFLOAT3 target(0.0f, 0.0f, 0.0f);
+	XMFLOAT3 up(0.0f, 1.0f, 0.0f);
+	gViewMat=XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
+	gProjectionMat=XMMatrixPerspectiveFovLH(
+		XM_PIDIV2, static_cast<float>(gWindowWidth) / static_cast<float>(gWindowHeight),
+		1.0f, 10.0f
+	);
+
+	auto pTempHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+	auto pTempResourceDesc = CD3DX12_RESOURCE_DESC::Buffer((sizeof(XMMATRIX) + 0xff) & ~0xff); //アラインメント
+	ThrowIfFailed(gDevice->CreateCommittedResource(
+		&pTempHeapProps, D3D12_HEAP_FLAG_NONE, &pTempResourceDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&gConstantBuffer)
+	));
+
+	ThrowIfFailed(gConstantBuffer->Map(0,nullptr,(void**)&gMapMatrix));
+	*gMapMatrix = gWorldMat * gViewMat* gProjectionMat;
+	//ループ内で変換させる場合はマップしたままにしておく
+
+	/*end*/
+
+	/*リソース作成の仕上げ*/
+
 	D3D12_DESCRIPTOR_HEAP_DESC descHeapDesc{};
 	descHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	descHeapDesc.NodeMask = 0;
-	descHeapDesc.NumDescriptors = gTextureNum;
+	descHeapDesc.NumDescriptors = static_cast<UINT>(descTblRange.size());
 	descHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	ThrowIfFailed(gDevice->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(&gTexDescHeap)));
+	ThrowIfFailed(gDevice->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(&gResourceDescHeap)));
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 	srvDesc.Format = metadata.format;
@@ -440,9 +515,22 @@ void CreateTextureResource()
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = 1;
 
+	auto resourceDescHeapHandle = gResourceDescHeap->GetCPUDescriptorHandleForHeapStart();
+
 	gDevice->CreateShaderResourceView(
-		gTexBuffer.Get(), &srvDesc, gTexDescHeap->GetCPUDescriptorHandleForHeapStart()
+		gTexBuffer.Get(), &srvDesc, resourceDescHeapHandle
 	);
+
+	resourceDescHeapHandle.ptr += gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc{};
+	cbvDesc.BufferLocation = gConstantBuffer->GetGPUVirtualAddress();
+	cbvDesc.SizeInBytes = static_cast<UINT>(gConstantBuffer->GetDesc().Width);
+	//定数バッファビューの作成
+	gDevice->CreateConstantBufferView(&cbvDesc, resourceDescHeapHandle);
+
+	/*end*/
+
+	/*GPUへ送信*/
 
 	gCommandList->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 	gBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
@@ -450,52 +538,8 @@ void CreateTextureResource()
 	);
 	gCommandList->ResourceBarrier(1, &gBarrier);
 	ExecuteAppCommandLists(false); //パイプライン外なのでfalse
-}
 
-/// <summary>
-/// グラフィクスパイプラインを処理するうえで必要なリソースを作成する
-/// グラフィクスパイプラインと独立している
-/// ルートシグネチャの作成もここで行う
-/// </summary>
-void CreateGPUResources()
-{
-	D3D12_DESCRIPTOR_RANGE descTblRange{};
-	descTblRange.NumDescriptors = gTextureNum;
-	descTblRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-	descTblRange.BaseShaderRegister = 0;
-	descTblRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-
-	D3D12_ROOT_PARAMETER rootParam{};
-	rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParam.DescriptorTable.pDescriptorRanges = &descTblRange;
-	rootParam.DescriptorTable.NumDescriptorRanges = gTextureNum;
-	rootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-
-	D3D12_STATIC_SAMPLER_DESC samplerDesc{};
-	samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-	samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-	samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-	samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
-	samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-	samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
-	samplerDesc.MinLOD = 0.0f;
-	samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-	samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-
-	auto rootSignatureDesc = CD3DX12_ROOT_SIGNATURE_DESC(
-		gTextureNum, &rootParam, gTextureNum, &samplerDesc, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
-	);
-	ComPtr<ID3DBlob> rootSignatureBlob;
-	ComPtr<ID3DBlob> errorBlob;
-	ThrowIfFailed(::D3D12SerializeRootSignature(
-		&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, &rootSignatureBlob, &errorBlob
-	));
-	ThrowIfFailed(gDevice->CreateRootSignature(
-		0, rootSignatureBlob->GetBufferPointer(), rootSignatureBlob->GetBufferSize(), IID_PPV_ARGS(&gRootSignature)
-	));
-
-	//テクスチャをGPUへ送る
-	CreateTextureResource();
+	/*end*/
 }
 
 /// <summary>
@@ -518,6 +562,7 @@ void CreateAppGraphicsPipelineState()
 	graphicsPipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	//ラスタライザステート
 	graphicsPipelineStateDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	graphicsPipelineStateDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 	//深度ステンシルステート
 	graphicsPipelineStateDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 	graphicsPipelineStateDesc.DepthStencilState.DepthEnable = false;
@@ -557,10 +602,10 @@ void CreateInputAssembly()
 	};
 	Vertex vertices[] =
 	{
-		{{-0.5f,-0.9f,0.0f},{0.0f,1.0f} },//左下
-		{{-0.5f,0.9f,0.0f} ,{0.0f,0.0f}},//左上
-		{{0.5f,-0.9f,0.0f} ,{1.0f,1.0f}},//右下
-		{{0.5f,0.9f,0.0f} ,{1.0f,0.0f}},//右上
+		{{-1.f,-1.f,0.0f},{0.0f,1.0f} },//左下
+		{{-1.f,1.f,0.0f} ,{0.0f,0.0f}},//左上
+		{{1.f,-1.f,0.0f} ,{1.0f,1.0f}},//右下
+		{{1.f,1.f,0.0f} ,{1.0f,0.0f}},//右上
 	};
 
 	unsigned short indices[] =
@@ -638,6 +683,9 @@ void ConstructGraphicsPipeline()
 /// </summary>
 void Update()
 {
+	gAngle += 0.06f;
+	gWorldMat = XMMatrixRotationY(gAngle);
+	*gMapMatrix = gWorldMat * gViewMat * gProjectionMat;
 }
 
 /// <summary>
@@ -649,10 +697,22 @@ void ClearAppRenderTargetView()
 	//レンダーターゲットの指定
 	auto rtvHeapsHandle = gRTVHeaps->GetCPUDescriptorHandleForHeapStart();
 	rtvHeapsHandle.ptr += static_cast<unsigned long long>(gCurrentBackBufferIdx) * gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	gCommandList->OMSetRenderTargets(gRenderTargetsNum, &rtvHeapsHandle, false, nullptr);
+	//パイプラインのOMステージの対象はこのRTVだよーということ
+	//ないと画面クリアされたものしか表示されない(パイプラインの結果は表示されない)
+	gCommandList->OMSetRenderTargets(gRenderTargetsNum, &rtvHeapsHandle, false, nullptr); 
 
 	//レンダーターゲットビューを一色で塗りつぶしてクリア → 表示すると塗りつぶされていることがわかる
 	gCommandList->ClearRenderTargetView(rtvHeapsHandle, gClearColor, 0, nullptr);
+}
+
+/// <summary>
+/// パイプライン外でリソースをセット
+/// </summary>
+void SetAppGPUResources()
+{
+	gCommandList->SetGraphicsRootSignature(gRootSignature.Get()); //ルートシグネチャ(シェーダから扱えるレジスタが定義されたディスクリプタテーブル)をコマンドリストにセット
+	gCommandList->SetDescriptorHeaps(gTextureNum, gResourceDescHeap.GetAddressOf());
+	gCommandList->SetGraphicsRootDescriptorTable(0, gResourceDescHeap->GetGPUDescriptorHandleForHeapStart());
 }
 
 /// <summary>
@@ -681,12 +741,12 @@ void SetCommandsOnRStage()
 /// </summary>
 void SetCommandsForGraphicsPipeline()
 {
+	//リソースをセット
+	SetAppGPUResources();
+
 	//パイプラインステートをコマンドリストにセット
 	gCommandList->SetPipelineState(gPipelineState.Get());
-	//ルートシグネチャ(シェーダから扱えるレジスタが定義されたディスクリプタテーブル)をコマンドリストにセット
-	gCommandList->SetGraphicsRootSignature(gRootSignature.Get());
-	gCommandList->SetDescriptorHeaps(gTextureNum, gTexDescHeap.GetAddressOf());
-	gCommandList->SetGraphicsRootDescriptorTable(0, gTexDescHeap->GetGPUDescriptorHandleForHeapStart());
+
 	//インプットアセンブラステージ
 	SetCommandsOnIAStage();
 	//ラスタライザステージ
@@ -775,6 +835,9 @@ int APIENTRY WinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE _hInst, _In_ LPSTR
 	UNREFERENCED_PARAMETER(_lpstr);
 	UNREFERENCED_PARAMETER(_intnum);
 
+	//高DPI対応
+	::SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+
 	//相対パスを有効にする
 	SetBasePath();
 
@@ -787,9 +850,10 @@ int APIENTRY WinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE _hInst, _In_ LPSTR
 	//ウィンドウ表示
 	::ShowWindow(gHwnd, SW_SHOW);
 
-	//GPUリソースの作成, グラフィクスパイプラインの構築より先に行う
-	CreateGPUResources();
-	//グラフィクスパイプラインの構築, 上記の関数で作成したルートシグネチャの登録もここで行う
+	//ルートシグネチャの作成
+	//リソースをGPUへ送る
+	CreateAppResources();
+	//グラフィクスパイプラインの構築, 作成したルートシグネチャの登録もここで行う
 	ConstructGraphicsPipeline();
 
 	//メインループ
