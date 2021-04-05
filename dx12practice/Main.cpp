@@ -53,11 +53,11 @@ ComPtr<ID3D12Resource> gBackBuffers[gBufferCount];
 ComPtr<ID3D12Fence> gFence;
 UINT64 gFenceValue = 0;
 UINT gCurrentBackBufferIdx = 0;
-float gClearColor[] = { 0.5f, 0.9f, 0.8f, 1.0f };
+float gClearColor[] = { 1.0f, 1.0f, 1.0f, 1.0f};
 D3D_FEATURE_LEVEL gFeatureLevel{};
 CD3DX12_RESOURCE_BARRIER gBarrier{};
 
-//GPUリソース(パイプライン外)まわり
+/*GPUリソース(パイプライン外)まわり*/
 constexpr UINT gTextureNum = 1;
 constexpr UINT gConstantBufferNum = 1;
 ComPtr<ID3D12DescriptorHeap> gResourceDescHeap;
@@ -70,6 +70,28 @@ XMMATRIX gViewMat{};
 XMMATRIX gProjectionMat{};
 XMMATRIX* gMapMatrix = nullptr; //マップ用，アップデートで変換するためにスコープを拡張
 float gAngle = 0.0f;
+//MMDまわり
+struct PMDHeader
+{
+	float mVersion;
+	char mModelName[20];
+	char mComment[256];
+};
+PMDHeader gPMDHeader{};
+
+struct PMDVertex
+{
+	XMFLOAT3 mPos;
+	XMFLOAT3 normal;
+	XMFLOAT2 uv;
+	uint16_t boneNo[2];
+	uint8_t boneWeight;
+	uint8_t edgeFlag;
+};
+PMDVertex gPMDVertex{};
+
+std::vector<uint8_t> gVertices{};
+constexpr size_t gPMDVertexSize = 38;
 
 //グラフィクスパイプラインステートまわり
 ComPtr<ID3D12Resource> gVertBuffer;
@@ -346,6 +368,32 @@ size_t AlignmentedSize(size_t size, size_t alignment) {
 	return size + alignment - size % alignment;
 }
 
+void LoadMMD()
+{
+	FILE* fp = nullptr;
+	auto error = ::fopen_s(&fp, "assets/初音ミク.pmd", "rb");
+	assert("ファイルオープン失敗", error == 0);
+
+	char magicNum[3]{};
+	error = fread_s(magicNum, sizeof(magicNum), sizeof(char), sizeof(magicNum) / sizeof(char), fp);
+	assert("ファイル読み込みエラー", error == 0);
+
+	error = fread_s(&(gPMDHeader.mVersion), sizeof(gPMDHeader.mVersion), sizeof(float), sizeof(gPMDHeader.mVersion) / sizeof(gPMDHeader.mVersion), fp);
+	assert("ファイル読み込みエラー", error == 0);
+
+	fread_s(gPMDHeader.mModelName, sizeof(gPMDHeader.mModelName), sizeof(char), sizeof(gPMDHeader.mModelName) / sizeof(char), fp);
+	assert("ファイル読み込みエラー", error == 0);
+
+	fread_s(gPMDHeader.mComment, sizeof(gPMDHeader.mComment), sizeof(char), sizeof(gPMDHeader.mComment) / sizeof(char), fp);
+	assert("ファイル読み込みエラー", error == 0);
+
+	uint32_t vertNum = 0;
+	fread_s(&vertNum, sizeof(vertNum), sizeof(uint32_t), sizeof(vertNum) / sizeof(uint32_t), fp);
+
+	gVertices.resize(vertNum * gPMDVertexSize);
+	error = fread_s(gVertices.data(), gVertices.size() * sizeof(uint8_t), sizeof(uint8_t), gVertices.size(), fp);
+}
+
 /// <summary>
 /// ルートシグネチャの作成, パイプライン外リソースの作成・送信
 /// </summary>
@@ -477,14 +525,14 @@ void CreateAppResources()
 	/*end*/
 
 	/*行列*/
-	gWorldMat = XMMatrixRotationY( XM_PIDIV4 );
-	XMFLOAT3 eye(0.0f, 0.0f, -5.0f);
-	XMFLOAT3 target(0.0f, 0.0f, 0.0f);
+	gWorldMat = XMMatrixRotationY(XM_PIDIV4);
+	XMFLOAT3 eye(0.0f, 10.0f, -15.0f);
+	XMFLOAT3 target(0.0f, 10.0f, 0.0f);
 	XMFLOAT3 up(0.0f, 1.0f, 0.0f);
-	gViewMat=XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
-	gProjectionMat=XMMatrixPerspectiveFovLH(
+	gViewMat = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
+	gProjectionMat = XMMatrixPerspectiveFovLH(
 		XM_PIDIV2, static_cast<float>(gWindowWidth) / static_cast<float>(gWindowHeight),
-		1.0f, 10.0f
+		1.0f, 100.0f
 	);
 
 	auto pTempHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
@@ -494,8 +542,8 @@ void CreateAppResources()
 		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&gConstantBuffer)
 	));
 
-	ThrowIfFailed(gConstantBuffer->Map(0,nullptr,(void**)&gMapMatrix));
-	*gMapMatrix = gWorldMat * gViewMat* gProjectionMat;
+	ThrowIfFailed(gConstantBuffer->Map(0, nullptr, (void**)&gMapMatrix));
+	*gMapMatrix = gWorldMat * gViewMat * gProjectionMat;
 	//ループ内で変換させる場合はマップしたままにしておく
 
 	/*end*/
@@ -570,7 +618,11 @@ void CreateAppGraphicsPipelineState()
 	D3D12_INPUT_ELEMENT_DESC inputLayouts[] =
 	{
 		{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
+		{ "NORMAL",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
 		{ "TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
+		{ "BONE_NO",0,DXGI_FORMAT_R16G16_UINT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
+		{ "WEIGHT",0,DXGI_FORMAT_R8_UINT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
+		{ "EDGE_FLG",0,DXGI_FORMAT_R8_UINT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
 	};
 	graphicsPipelineStateDesc.InputLayout.pInputElementDescs = inputLayouts;
 	graphicsPipelineStateDesc.InputLayout.NumElements = _countof(inputLayouts);
@@ -595,55 +647,22 @@ void CreateAppGraphicsPipelineState()
 /// </summary>
 void CreateInputAssembly()
 {
-	struct Vertex
-	{
-		XMFLOAT3 pos;//XYZ座標
-		XMFLOAT2 uv;//UV座標
-	};
-	Vertex vertices[] =
-	{
-		{{-1.f,-1.f,0.0f},{0.0f,1.0f} },//左下
-		{{-1.f,1.f,0.0f} ,{0.0f,0.0f}},//左上
-		{{1.f,-1.f,0.0f} ,{1.0f,1.0f}},//右下
-		{{1.f,1.f,0.0f} ,{1.0f,0.0f}},//右上
-	};
-
-	unsigned short indices[] =
-	{
-		0,1,2,
-		2,1,3
-	};
-
+	LoadMMD();
 	auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-	auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(sizeof(vertices));
+	auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(gVertices.size() * sizeof(uint8_t));
 	ThrowIfFailed(gDevice->CreateCommittedResource(
 		&heapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc,
 		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&gVertBuffer)
 	));
 
-	Vertex* vertMap = nullptr;
+	uint8_t* vertMap = nullptr;
 	ThrowIfFailed(gVertBuffer->Map(0, nullptr, (void**)&vertMap));
-	std::copy(std::begin(vertices), std::end(vertices), vertMap);
+	std::copy(gVertices.begin(), gVertices.end(), vertMap);
 	gVertBuffer->Unmap(0, nullptr);
 
 	gVertBufferView.BufferLocation = gVertBuffer->GetGPUVirtualAddress(); //GPU側のバッファの仮想アドレス
-	gVertBufferView.SizeInBytes = sizeof(vertices); //頂点情報全体のサイズ
-	gVertBufferView.StrideInBytes = sizeof(vertices[0]); //頂点情報一つ当たりのサイズ
-
-	resourceDesc.Width = sizeof(indices);
-	ThrowIfFailed(gDevice->CreateCommittedResource(
-		&heapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc,
-		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&gIdxBuffer)
-	));
-
-	unsigned short* idxMap = nullptr;
-	ThrowIfFailed(gIdxBuffer->Map(0, nullptr, (void**)&idxMap));
-	std::copy(std::begin(indices), std::end(indices), idxMap);
-	gIdxBuffer->Unmap(0, nullptr);
-
-	gIdxBufferView.BufferLocation = gIdxBuffer->GetGPUVirtualAddress();
-	gIdxBufferView.Format = DXGI_FORMAT_R16_UINT;
-	gIdxBufferView.SizeInBytes = sizeof(indices);
+	gVertBufferView.SizeInBytes = gVertices.size() * sizeof(uint8_t);
+	gVertBufferView.StrideInBytes = gPMDVertexSize;
 }
 
 /// <summary>
@@ -699,7 +718,7 @@ void ClearAppRenderTargetView()
 	rtvHeapsHandle.ptr += static_cast<unsigned long long>(gCurrentBackBufferIdx) * gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	//パイプラインのOMステージの対象はこのRTVだよーということ
 	//ないと画面クリアされたものしか表示されない(パイプラインの結果は表示されない)
-	gCommandList->OMSetRenderTargets(gRenderTargetsNum, &rtvHeapsHandle, false, nullptr); 
+	gCommandList->OMSetRenderTargets(gRenderTargetsNum, &rtvHeapsHandle, false, nullptr);
 
 	//レンダーターゲットビューを一色で塗りつぶしてクリア → 表示すると塗りつぶされていることがわかる
 	gCommandList->ClearRenderTargetView(rtvHeapsHandle, gClearColor, 0, nullptr);
@@ -720,7 +739,7 @@ void SetAppGPUResources()
 /// </summary>
 void SetCommandsOnIAStage()
 {
-	gCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	gCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
 	gCommandList->IASetVertexBuffers(0, gRenderTargetsNum, &gVertBufferView);
 	gCommandList->IASetIndexBuffer(&gIdxBufferView);
 }
@@ -752,7 +771,9 @@ void SetCommandsForGraphicsPipeline()
 	//ラスタライザステージ
 	SetCommandsOnRStage();
 	//描画
-	gCommandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
+	//gCommandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
+
+	gCommandList->DrawInstanced(gVertices.size() / gPMDVertexSize, 1, 0, 0);
 }
 
 /// <summary>
@@ -855,6 +876,8 @@ int APIENTRY WinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE _hInst, _In_ LPSTR
 	CreateAppResources();
 	//グラフィクスパイプラインの構築, 作成したルートシグネチャの登録もここで行う
 	ConstructGraphicsPipeline();
+
+	LoadMMD();
 
 	//メインループ
 	MainLoop();
