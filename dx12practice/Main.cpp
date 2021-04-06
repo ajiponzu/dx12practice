@@ -50,6 +50,8 @@ ComPtr<ID3D12CommandQueue> gCommandQ;
 ComPtr<IDXGISwapChain4> gSwapChain;
 ComPtr<ID3D12DescriptorHeap> gRTVHeaps;
 ComPtr<ID3D12Resource> gBackBuffers[gBufferCount];
+ComPtr<ID3D12Resource> gDepthBuffer;
+ComPtr<ID3D12DescriptorHeap> gDSVHeaps;
 ComPtr<ID3D12Fence> gFence;
 UINT64 gFenceValue = 0;
 UINT gCurrentBackBufferIdx = 0;
@@ -65,10 +67,13 @@ ComPtr<ID3D12Resource> gTexBuffer;
 //Render内で呼ばれないが，ディスクリプタ(あるいはビュー)はバッファの命令インターフェイスみたいなもの
 //本体が生存していなければエラー
 ComPtr<ID3D12Resource> gConstantBuffer;
-XMMATRIX gWorldMat{};
-XMMATRIX gViewMat{};
-XMMATRIX gProjectionMat{};
-XMMATRIX* gMapMatrix = nullptr; //マップ用，アップデートで変換するためにスコープを拡張
+struct MatrixData
+{
+	XMMATRIX mWorld;
+	XMMATRIX mViewProjection;
+};
+MatrixData gMatrix;
+MatrixData* gMapMatrix = nullptr; //マップ用，アップデートで変換するためにスコープを拡張
 float gAngle = 0.0f;
 //MMDまわり
 struct PMDHeader
@@ -91,6 +96,7 @@ struct PMDVertex
 PMDVertex gPMDVertex{};
 
 std::vector<uint8_t> gVertices{};
+std::vector<uint16_t> gIndices{};
 constexpr size_t gPMDVertexSize = 38;
 
 //グラフィクスパイプラインステートまわり
@@ -272,6 +278,41 @@ void CreateAppSwapChain()
 }
 
 /// <summary>
+/// 深度がらみの設定
+/// </summary>
+void CreateDepthTools()
+{
+	auto depthResourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(
+		DXGI_FORMAT_D32_FLOAT, gWindowWidth, gWindowHeight
+	);
+	depthResourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+	auto depthHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+
+	auto depthClearValue = CD3DX12_CLEAR_VALUE(DXGI_FORMAT_D32_FLOAT, 1.0f, 0	);
+
+	ThrowIfFailed(gDevice->CreateCommittedResource(
+		&depthHeapProps, D3D12_HEAP_FLAG_NONE, &depthResourceDesc,
+		D3D12_RESOURCE_STATE_DEPTH_WRITE, &depthClearValue, IID_PPV_ARGS(&gDepthBuffer)
+	));
+
+	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc{};
+	dsvHeapDesc.NumDescriptors = 1;
+	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	
+	ThrowIfFailed(gDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&gDSVHeaps)));
+
+	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
+	dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+	dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
+
+	gDevice->CreateDepthStencilView(
+		gDepthBuffer.Get(), &dsvDesc, gDSVHeaps->GetCPUDescriptorHandleForHeapStart()
+	);
+}
+
+/// <summary>
 /// バックバッファとレンダーターゲットビューの作成
 /// および関連付け？
 /// </summary>
@@ -323,6 +364,7 @@ void PrepareClearWindow()
 	CreateAppGPUCommandTools();
 	CreateAppSwapChain();
 	CreateBackBufferAndRTV();
+	CreateDepthTools(); //必須ではないが，呼び出し場所としてはここがふさわしい
 
 	//フェンスの作成
 	ThrowIfFailed(gDevice->CreateFence(gFenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&gFence)));
@@ -366,32 +408,6 @@ void ExecuteAppCommandLists(bool isPipelineUsed)
 
 size_t AlignmentedSize(size_t size, size_t alignment) {
 	return size + alignment - size % alignment;
-}
-
-void LoadMMD()
-{
-	FILE* fp = nullptr;
-	auto error = ::fopen_s(&fp, "assets/初音ミク.pmd", "rb");
-	assert("ファイルオープン失敗", error == 0);
-
-	char magicNum[3]{};
-	error = fread_s(magicNum, sizeof(magicNum), sizeof(char), sizeof(magicNum) / sizeof(char), fp);
-	assert("ファイル読み込みエラー", error == 0);
-
-	error = fread_s(&(gPMDHeader.mVersion), sizeof(gPMDHeader.mVersion), sizeof(float), sizeof(gPMDHeader.mVersion) / sizeof(gPMDHeader.mVersion), fp);
-	assert("ファイル読み込みエラー", error == 0);
-
-	fread_s(gPMDHeader.mModelName, sizeof(gPMDHeader.mModelName), sizeof(char), sizeof(gPMDHeader.mModelName) / sizeof(char), fp);
-	assert("ファイル読み込みエラー", error == 0);
-
-	fread_s(gPMDHeader.mComment, sizeof(gPMDHeader.mComment), sizeof(char), sizeof(gPMDHeader.mComment) / sizeof(char), fp);
-	assert("ファイル読み込みエラー", error == 0);
-
-	uint32_t vertNum = 0;
-	fread_s(&vertNum, sizeof(vertNum), sizeof(uint32_t), sizeof(vertNum) / sizeof(uint32_t), fp);
-
-	gVertices.resize(vertNum * gPMDVertexSize);
-	error = fread_s(gVertices.data(), gVertices.size() * sizeof(uint8_t), sizeof(uint8_t), gVertices.size(), fp);
 }
 
 /// <summary>
@@ -525,25 +541,26 @@ void CreateAppResources()
 	/*end*/
 
 	/*行列*/
-	gWorldMat = XMMatrixRotationY(XM_PIDIV4);
+	gMatrix.mWorld = XMMatrixRotationY(XM_PIDIV4);
 	XMFLOAT3 eye(0.0f, 10.0f, -15.0f);
 	XMFLOAT3 target(0.0f, 10.0f, 0.0f);
 	XMFLOAT3 up(0.0f, 1.0f, 0.0f);
-	gViewMat = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
-	gProjectionMat = XMMatrixPerspectiveFovLH(
+	gMatrix.mViewProjection = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
+	gMatrix.mViewProjection *= XMMatrixPerspectiveFovLH(
 		XM_PIDIV2, static_cast<float>(gWindowWidth) / static_cast<float>(gWindowHeight),
 		1.0f, 100.0f
 	);
 
 	auto pTempHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-	auto pTempResourceDesc = CD3DX12_RESOURCE_DESC::Buffer((sizeof(XMMATRIX) + 0xff) & ~0xff); //アラインメント
+	auto pTempResourceDesc = CD3DX12_RESOURCE_DESC::Buffer((sizeof(MatrixData) + 0xff) & ~0xff); //アラインメント
 	ThrowIfFailed(gDevice->CreateCommittedResource(
 		&pTempHeapProps, D3D12_HEAP_FLAG_NONE, &pTempResourceDesc,
 		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&gConstantBuffer)
 	));
 
 	ThrowIfFailed(gConstantBuffer->Map(0, nullptr, (void**)&gMapMatrix));
-	*gMapMatrix = gWorldMat * gViewMat * gProjectionMat;
+	gMapMatrix->mWorld = gMatrix.mWorld;
+	gMapMatrix->mViewProjection = gMatrix.mViewProjection;
 	//ループ内で変換させる場合はマップしたままにしておく
 
 	/*end*/
@@ -613,7 +630,8 @@ void CreateAppGraphicsPipelineState()
 	graphicsPipelineStateDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
 	//深度ステンシルステート
 	graphicsPipelineStateDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-	graphicsPipelineStateDesc.DepthStencilState.DepthEnable = false;
+	//深度ビューの設定
+	graphicsPipelineStateDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 	//インプットレイアウト
 	D3D12_INPUT_ELEMENT_DESC inputLayouts[] =
 	{
@@ -643,13 +661,46 @@ void CreateAppGraphicsPipelineState()
 }
 
 /// <summary>
+/// インプットアセンブラステージで送る3Dモデルの頂点情報作成
+/// </summary>
+void LoadMMD()
+{
+	FILE* fp = nullptr;
+	auto err = ::fopen_s(&fp, "assets/初音ミク.pmd", "rb");
+	if (fp == nullptr) 
+	{
+		char strerr[256];
+		strerror_s(strerr, 256, err);
+		::MessageBox(::GetActiveWindow(), strerr, "Open Error", MB_ICONERROR);
+		return;
+	}
+
+	char magicNum[3]{};
+	fread_s(magicNum, sizeof(magicNum), sizeof(char), sizeof(magicNum) / sizeof(char), fp);
+
+	fread_s(&(gPMDHeader.mVersion), sizeof(gPMDHeader.mVersion), sizeof(float), sizeof(gPMDHeader.mVersion) / sizeof(float), fp);
+	fread_s(gPMDHeader.mModelName, sizeof(gPMDHeader.mModelName), sizeof(char), sizeof(gPMDHeader.mModelName) / sizeof(char), fp);
+	fread_s(gPMDHeader.mComment, sizeof(gPMDHeader.mComment), sizeof(char), sizeof(gPMDHeader.mComment) / sizeof(char), fp);
+
+	uint32_t vertNum = 0;
+	fread_s(&vertNum, sizeof(vertNum), sizeof(uint32_t), 1, fp);
+	gVertices.resize(vertNum * gPMDVertexSize);
+	fread_s(gVertices.data(), gVertices.size() * sizeof(uint8_t), sizeof(uint8_t), gVertices.size(), fp);
+
+	uint32_t indicesNum = 0;
+	fread_s(&indicesNum, sizeof(indicesNum), sizeof(uint32_t), 1, fp);
+	gIndices.resize(indicesNum);
+	fread_s(gIndices.data(), gIndices.size() * sizeof(uint16_t), sizeof(uint16_t), gIndices.size(), fp);
+}
+
+/// <summary>
 ///	 インプットアセンブラステージで使用するリソースを作成
 /// </summary>
 void CreateInputAssembly()
 {
 	LoadMMD();
 	auto heapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-	auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(gVertices.size() * sizeof(uint8_t));
+	auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer(gVertices.size() * sizeof(gVertices[0]));
 	ThrowIfFailed(gDevice->CreateCommittedResource(
 		&heapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc,
 		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&gVertBuffer)
@@ -661,8 +712,23 @@ void CreateInputAssembly()
 	gVertBuffer->Unmap(0, nullptr);
 
 	gVertBufferView.BufferLocation = gVertBuffer->GetGPUVirtualAddress(); //GPU側のバッファの仮想アドレス
-	gVertBufferView.SizeInBytes = gVertices.size() * sizeof(uint8_t);
+	gVertBufferView.SizeInBytes = static_cast<UINT>(gVertices.size() * sizeof(gVertices[0]));
 	gVertBufferView.StrideInBytes = gPMDVertexSize;
+
+	resourceDesc.Width = static_cast<UINT64>(gIndices.size() * sizeof(gIndices[0]));
+	ThrowIfFailed(gDevice->CreateCommittedResource(
+		&heapProps, D3D12_HEAP_FLAG_NONE, &resourceDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&gIdxBuffer)
+	));
+
+	uint16_t* idxMap = nullptr;
+	ThrowIfFailed(gIdxBuffer->Map(0, nullptr, (void**)&idxMap));
+	std::copy(gIndices.begin(), gIndices.end(), idxMap);
+	gIdxBuffer->Unmap(0, nullptr);
+
+	gIdxBufferView.BufferLocation = gIdxBuffer->GetGPUVirtualAddress();
+	gIdxBufferView.Format = DXGI_FORMAT_R16_UINT;
+	gIdxBufferView.SizeInBytes = static_cast<UINT>(gIndices.size() * sizeof(gIndices[0]));	
 }
 
 /// <summary>
@@ -703,8 +769,8 @@ void ConstructGraphicsPipeline()
 void Update()
 {
 	gAngle += 0.06f;
-	gWorldMat = XMMatrixRotationY(gAngle);
-	*gMapMatrix = gWorldMat * gViewMat * gProjectionMat;
+	gMatrix.mWorld = XMMatrixRotationY(gAngle);
+	gMapMatrix->mWorld = gMatrix.mWorld;
 }
 
 /// <summary>
@@ -716,12 +782,16 @@ void ClearAppRenderTargetView()
 	//レンダーターゲットの指定
 	auto rtvHeapsHandle = gRTVHeaps->GetCPUDescriptorHandleForHeapStart();
 	rtvHeapsHandle.ptr += static_cast<unsigned long long>(gCurrentBackBufferIdx) * gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	//深度バッファの指定
+	auto dsvHandle = gDSVHeaps->GetCPUDescriptorHandleForHeapStart();
 	//パイプラインのOMステージの対象はこのRTVだよーということ
 	//ないと画面クリアされたものしか表示されない(パイプラインの結果は表示されない)
-	gCommandList->OMSetRenderTargets(gRenderTargetsNum, &rtvHeapsHandle, false, nullptr);
+	gCommandList->OMSetRenderTargets(gRenderTargetsNum, &rtvHeapsHandle, false, &dsvHandle);
 
 	//レンダーターゲットビューを一色で塗りつぶしてクリア → 表示すると塗りつぶされていることがわかる
 	gCommandList->ClearRenderTargetView(rtvHeapsHandle, gClearColor, 0, nullptr);
+	//深度バッファをクリア
+	gCommandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 }
 
 /// <summary>
@@ -739,7 +809,7 @@ void SetAppGPUResources()
 /// </summary>
 void SetCommandsOnIAStage()
 {
-	gCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_POINTLIST);
+	gCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	gCommandList->IASetVertexBuffers(0, gRenderTargetsNum, &gVertBufferView);
 	gCommandList->IASetIndexBuffer(&gIdxBufferView);
 }
@@ -771,9 +841,8 @@ void SetCommandsForGraphicsPipeline()
 	//ラスタライザステージ
 	SetCommandsOnRStage();
 	//描画
-	//gCommandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
-
-	gCommandList->DrawInstanced(gVertices.size() / gPMDVertexSize, 1, 0, 0);
+	//gCommandList->DrawInstanced(gVertices.size() / gPMDVertexSize, 1, 0, 0);
+	gCommandList->DrawIndexedInstanced(static_cast<UINT>(gIndices.size()), 1, 0, 0, 0);
 }
 
 /// <summary>
