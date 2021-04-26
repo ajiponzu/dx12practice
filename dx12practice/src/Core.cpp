@@ -57,7 +57,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 	return 0;
 }
 
-void Core::MakeInstance(HINSTANCE hInst, std::wstring title, const int& wid, const int& high)
+void Core::MakeInstance(HINSTANCE hInst, const std::wstring title, const int& wid, const int& high)
 {
 	//スマートポインタでシングルトン
 	// 	普通に書くと，別のクラスメンバであるmake_uniqueでprivateコンストラクタを呼び出そうとしてエラー

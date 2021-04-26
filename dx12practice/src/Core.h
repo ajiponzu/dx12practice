@@ -71,20 +71,20 @@ public:
 		UnregisterClass(mWndClass.lpszClassName, mWndClass.hInstance);
 	}
 
-	static void MakeInstance(HINSTANCE hInst, std::wstring title, const int& wid = 1280, const int& high = 720);
+	static void MakeInstance(HINSTANCE hInst, const std::wstring title, const int& wid = 1280, const int& high = 720);
 	static void SetWindow(const int& wid = 1280, const int& high = 720, UINT bufferCount = 2);
 	static void Run(std::shared_ptr<Scene> pScene);
 	static Core& GetInstance();
 
 	void ExecuteAppCommandLists(bool isPipelineUsed);
 
-	IDXGIFactory6* GetFactory() { return mDxgiFactory.Get(); }
-	ID3D12Device* GetDevice() { return mDxDevice.Get(); }
-	ID3D12CommandQueue* GetCommandQ() { return mCommandQ.Get(); }
-	ID3D12GraphicsCommandList* GetCommandList() { return mCommandList.Get(); }
+	ComPtr<IDXGIFactory6>& GetFactory() { return mDxgiFactory; }
+	ComPtr<ID3D12Device>& GetDevice() { return mDxDevice; }
+	ComPtr<ID3D12CommandQueue>& GetCommandQ() { return mCommandQ; }
+	ComPtr<ID3D12GraphicsCommandList>& GetCommandList() { return mCommandList; }
 
 private:
-	Core(HINSTANCE hInst, std::wstring& title, const int& wid = 1280, const int& high = 720)
+	Core(HINSTANCE hInst, const std::wstring& title, const int& wid = 1280, const int& high = 720)
 		: mHInstance(hInst)
 		, mWndTitle(title)
 	{

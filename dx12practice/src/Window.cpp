@@ -14,8 +14,8 @@ void Window::Render()
 	auto& backBuffer = mBackBuffers[mCurrentBackBufferIdx]; //インデックスが毎フレーム交互に入れ替わる
 
 	auto& core = Core::GetInstance();
-	auto commandList = core.GetCommandList();
-	auto device = core.GetDevice();
+	auto &commandList = core.GetCommandList();
+	auto &device = core.GetDevice();
 
 	//バッファの操作を安全に行うための処理
 	mBarrier = CD3DX12_RESOURCE_BARRIER::Transition(backBuffer.Get(), D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -51,16 +51,16 @@ void Window::Init()
 void Window::PrepareClearWindow()
 {
 	auto& core = Core::GetInstance();
-	auto factory = core.GetFactory();
-	auto commandQ = core.GetCommandQ();
-	auto device = core.GetDevice();
+	auto &factory = core.GetFactory();
+	auto &commandQ = core.GetCommandQ();
+	auto &device = core.GetDevice();
 
 	MakeSwapChain(factory, commandQ);
 	MakeBackBufferAndRTV(device);
 	MakeDepthTools(device);
 }
 
-void Window::MakeSwapChain(IDXGIFactory6* factory, ID3D12CommandQueue* commandQ)
+void Window::MakeSwapChain(ComPtr<IDXGIFactory6>& factory, ComPtr<ID3D12CommandQueue>& commandQ)
 {
 	//デスクリプション構築
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
@@ -79,7 +79,7 @@ void Window::MakeSwapChain(IDXGIFactory6* factory, ID3D12CommandQueue* commandQ)
 
 	//作成
 	ComPtr<IDXGISwapChain1> swapChain1;
-	ThrowIfFailed(factory->CreateSwapChainForHwnd(commandQ, mHwnd, &swapChainDesc, nullptr, nullptr, &swapChain1));
+	ThrowIfFailed(factory->CreateSwapChainForHwnd(commandQ.Get(), mHwnd, &swapChainDesc, nullptr, nullptr, &swapChain1));
 	//キャスト, idxgi~4はcreate~hwndの引数に渡せないから
 	swapChain1.As(&mSwapChain);
 }
@@ -88,7 +88,7 @@ void Window::MakeSwapChain(IDXGIFactory6* factory, ID3D12CommandQueue* commandQ)
 /// バックバッファとレンダーターゲットビューの作成
 /// および関連付け？
 /// </summary>
-void Window::MakeBackBufferAndRTV(ID3D12Device* device)
+void Window::MakeBackBufferAndRTV(ComPtr<ID3D12Device>& device)
 {
 	//レンダーターゲットビューのディスクリプションヒープのディスクリプション構築
 	D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc{};
@@ -124,7 +124,7 @@ void Window::MakeBackBufferAndRTV(ID3D12Device* device)
 /// <summary>
 /// 深度がらみの設定
 /// </summary>
-void Window::MakeDepthTools(ID3D12Device* device)
+void Window::MakeDepthTools(ComPtr<ID3D12Device>& device)
 {
 	auto depthResourceDesc = CD3DX12_RESOURCE_DESC::Tex2D(
 		DXGI_FORMAT_D32_FLOAT, mWidth, mHeight
@@ -163,8 +163,8 @@ void Window::MakeDepthTools(ID3D12Device* device)
 void Window::ClearAppRenderTargetView(UINT renderTargetsNum)
 {
 	auto& core = Core::GetInstance();
-	auto	device = core.GetDevice();
-	auto	commandList = core.GetCommandList();
+	auto	&device = core.GetDevice();
+	auto	&commandList = core.GetCommandList();
 
 	//レンダーターゲットの指定
 	auto rtvHeapsHandle = mRTVHeaps->GetCPUDescriptorHandleForHeapStart();

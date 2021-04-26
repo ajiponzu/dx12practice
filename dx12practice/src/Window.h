@@ -84,7 +84,7 @@ private:
 
 	/*directx12Žü‚è*/
 	void PrepareClearWindow();
-	void MakeSwapChain(IDXGIFactory6* factory, ID3D12CommandQueue* commandQ);
-	void MakeBackBufferAndRTV(ID3D12Device* device);
-	void MakeDepthTools(ID3D12Device* device);
+	void MakeSwapChain(ComPtr<IDXGIFactory6>& factory, ComPtr<ID3D12CommandQueue>& commandQ);
+	void MakeBackBufferAndRTV(ComPtr<ID3D12Device>& device);
+	void MakeDepthTools(ComPtr<ID3D12Device>& device);
 };
