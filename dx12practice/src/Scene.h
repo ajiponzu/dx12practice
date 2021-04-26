@@ -36,17 +36,15 @@ using namespace Microsoft::WRL;
 #include <unordered_map>
 #include <vector>
 
-class Window;
+#include "Window.h"
 
 class Scene
 {
-public:
 private:
+    UINT mRenderTargetsNum = 1;
 
 public:
-	virtual void Update(Window& window) = 0;
-	virtual void Render(Window& window) = 0;
-	virtual void LoadContents(Window& window) = 0;
-
-private:
+    virtual void Update(Window& window);
+    virtual void Render(Window& window);
+    virtual void LoadContents(Window& window);
 };

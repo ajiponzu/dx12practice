@@ -71,7 +71,7 @@ void Core::MakeInstance(HINSTANCE hInst, const std::wstring title, const int& wi
 		{
 			//親コンストラクタを呼び出し
 			//メンバ関数内なので, privateコンストラクタも呼び出せる
-			Instantiate(HINSTANCE hInst, std::wstring& title, const int& wid = 1280, const int& high = 720)
+			Instantiate(HINSTANCE hInst, const std::wstring& title, const int& wid = 1280, const int& high = 720)
 			: Core(hInst, title, wid, high)
 			{}
 		};
@@ -99,6 +99,9 @@ void Core::Run(std::shared_ptr<Scene> pScene)
 
 	auto hwnd = g_pSingleton->mHwnd;
 	auto &pWindow = gWindows[hwnd];
+
+	if (!pScene)
+		pScene = std::make_shared<Scene>();
 	pWindow->SetScene(pScene);
 
 	::ShowWindow(hwnd, SW_SHOW);

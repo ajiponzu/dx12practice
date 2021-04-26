@@ -36,7 +36,7 @@ using namespace Microsoft::WRL;
 #include <unordered_map>
 #include <vector>
 
-class Scene;
+#include "Scene.h"
 
 /// <summary>
 /// API連携，ウィンドウ表示
@@ -73,8 +73,8 @@ public:
 
 	static void MakeInstance(HINSTANCE hInst, const std::wstring title, const int& wid = 1280, const int& high = 720);
 	static void SetWindow(const int& wid = 1280, const int& high = 720, UINT bufferCount = 2);
-	static void Run(std::shared_ptr<Scene> pScene);
 	static Core& GetInstance();
+	static void Run(std::shared_ptr<Scene> pScene = nullptr);
 
 	void ExecuteAppCommandLists(bool isPipelineUsed);
 

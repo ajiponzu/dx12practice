@@ -28,10 +28,8 @@ int APIENTRY WinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE _hInst, _In_ LPSTR
 
 	Core::MakeInstance(hInst, L"ÉQÅ[ÉÄ", 2560, 1440);
 	Core::SetWindow();
-	{
-		auto scene = std::make_unique<VoidScene>();
-		Core::Run(std::move(scene));
-	}
+	//Core::Run(std::make_shared<VoidScene>());
+	Core::Run();
 
 	return 0;
 }
