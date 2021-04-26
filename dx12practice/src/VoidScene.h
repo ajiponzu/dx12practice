@@ -10,8 +10,8 @@ private:
 
 public:
     VoidScene() : Scene() {}
-    virtual void Update(Window* pWindow) override;
-    virtual void Render(Window* pWindow) override;
-    virtual void LoadContents(Window* pWindow) override;
+    virtual void Update(Window& window) override;
+    virtual void Render(Window& window) override;
+    virtual void LoadContents(Window& window) override;
 };
 

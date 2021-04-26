@@ -1,15 +1,15 @@
 #include "VoidScene.h"
 #include "Window.h"
 
-void VoidScene::Update(Window* pWindow)
+void VoidScene::Update(Window& window)
 {
 }
 
-void VoidScene::Render(Window* pWindow)
+void VoidScene::Render(Window& window)
 {
-	pWindow->ClearAppRenderTargetView(mRenderTargetsNum);
+	window.ClearAppRenderTargetView(mRenderTargetsNum);
 }
 
-void VoidScene::LoadContents(Window* pWindow)
+void VoidScene::LoadContents(Window& window)
 {
 }

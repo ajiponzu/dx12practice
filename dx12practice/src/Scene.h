@@ -44,9 +44,9 @@ public:
 private:
 
 public:
-	virtual void Update(Window* pWindow) = 0;
-	virtual void Render(Window* pWindow) = 0;
-	virtual void LoadContents(Window* pWindow) = 0;
+	virtual void Update(Window& window) = 0;
+	virtual void Render(Window& window) = 0;
+	virtual void LoadContents(Window& window) = 0;
 
 private:
 };

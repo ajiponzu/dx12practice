@@ -4,7 +4,7 @@
 
 void Window::Update()
 {
-	mScene->Update(this);
+	mScene->Update(*this);
 }
 
 void Window::Render()
@@ -22,7 +22,7 @@ void Window::Render()
 	commandList->ResourceBarrier(1, &mBarrier);
 
 	/*GPUに対する命令追加*/
-	mScene->Render(this);
+	mScene->Render(*this);
 	/*end*/
 
 	//バッファの操作を安全に終了するための処理，画面に表示する準備ができた
@@ -39,7 +39,7 @@ void Window::Render()
 
 void Window::MakeGraphicsPipeline()
 {
-	mScene->LoadContents(this);
+	mScene->LoadContents(*this);
 }
 
 void Window::Init()
