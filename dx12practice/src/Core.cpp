@@ -8,8 +8,9 @@ using WindowMap = std::unordered_map<HWND, WindowPtr>;
 
 /*static変数*/
 static  WindowMap gWindows;
-static Core* g_pSingleton = nullptr;
+static std::unique_ptr<Core> g_pSingleton = nullptr;
 static HWND gHwnd;
+/*end*/
 
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -44,10 +45,7 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 			gWindows.erase(hwnd);
 			::DestroyWindow(hwnd);
 			if (gWindows.empty())
-			{
-				Core::Destroy();
 				PostQuitMessage(0);
-			}
 			break;
 		default:
 			return DefWindowProcW(hwnd, msg, wParam, lParam);
@@ -59,19 +57,27 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 	return 0;
 }
 
-void Core::Destroy()
-{
-	if (g_pSingleton)
-	{
-		delete g_pSingleton;
-		g_pSingleton = nullptr;
-	}
-}
-
 void Core::MakeInstance(HINSTANCE hInst, std::wstring title, const int& wid, const int& high)
 {
+	//スマートポインタでシングルトン
+	// 	普通に書くと，別のクラスメンバであるmake_uniqueでprivateコンストラクタを呼び出そうとしてエラー
+	// 	よって下記参考
+	//「http://msty.hatenablog.jp/entry/2017/05/14/172653」
 	if (!g_pSingleton)
-		g_pSingleton = new Core(hInst, title, wid, high);
+	{
+		//Coreを継承した一時的な構造体を作成
+		//構造体なら基本がpublicメンバなので, 綺麗に書ける
+		struct Instantiate : public Core
+		{
+			//親コンストラクタを呼び出し
+			//メンバ関数内なので, privateコンストラクタも呼び出せる
+			Instantiate(HINSTANCE hInst, std::wstring& title, const int& wid = 1280, const int& high = 720)
+			: Core(hInst, title, wid, high)
+			{}
+		};
+		//あくまでmake_uniqueが直接呼び出すのはpublicなInstantiateコンストラクタ
+		g_pSingleton = std::make_unique<Instantiate>(hInst, title, wid, high);
+	}
 }
 
 void Core::SetWindow(const int& wid, const int& high, UINT bufferCount)

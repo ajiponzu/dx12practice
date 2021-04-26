@@ -64,7 +64,9 @@ private:
 	UINT64 mFenceValue = 0;
 
 public:
-	virtual ~Core()
+	Core() {}
+
+	~Core()
 	{
 		UnregisterClass(mWndClass.lpszClassName, mWndClass.hInstance);
 	}
@@ -72,7 +74,6 @@ public:
 	static void MakeInstance(HINSTANCE hInst, std::wstring title, const int& wid = 1280, const int& high = 720);
 	static void SetWindow(const int& wid = 1280, const int& high = 720, UINT bufferCount = 2);
 	static void Run(std::shared_ptr<Scene> pScene);
-	static void Destroy();
 	static Core& GetInstance();
 
 	void ExecuteAppCommandLists(bool isPipelineUsed);
@@ -82,7 +83,7 @@ public:
 	ID3D12CommandQueue* GetCommandQ() { return mCommandQ.Get(); }
 	ID3D12GraphicsCommandList* GetCommandList() { return mCommandList.Get(); }
 
-protected:
+private:
 	Core(HINSTANCE hInst, std::wstring& title, const int& wid = 1280, const int& high = 720)
 		: mHInstance(hInst)
 		, mWndTitle(title)
@@ -90,11 +91,10 @@ protected:
 		Init(wid, high);
 	}
 
-	void Init(const int& wid, const int& high);
-
-private:
 	Core(const Core& copy) = delete;
 	Core& operator=(const Core& other) = delete;
+
+	void Init(const int& wid, const int& high);
 
 	/*win32Žü‚è*/
 	ATOM RegisterWindowParam();
