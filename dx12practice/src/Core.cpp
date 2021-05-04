@@ -92,7 +92,7 @@ Core& Core::GetInstance()
 	return *g_pSingleton;
 }
 
-void Core::Run(std::shared_ptr<Scene> pScene)
+void Core::Run(std::unique_ptr<Scene> pScene)
 {
 	if (!g_pSingleton)
 		return;
@@ -101,7 +101,7 @@ void Core::Run(std::shared_ptr<Scene> pScene)
 	auto &pWindow = gWindows[hwnd];
 
 	if (!pScene)
-		pScene = std::make_shared<Scene>();
+		pScene = std::make_unique<Scene>();
 	pWindow->SetScene(pScene);
 
 	::ShowWindow(hwnd, SW_SHOW);

@@ -1,6 +1,6 @@
 #include "Window.h"
 #include "Core.h"
-#include "VoidScene.h"
+#include "Scene.h"
 
 void Window::Update()
 {

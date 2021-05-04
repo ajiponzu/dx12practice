@@ -1,6 +1,5 @@
 #include "src/Core.h"
 #include "src/Utility.h"
-#include "src/VoidScene.h"
 
 /// <summary>
 /// エントリポイント
@@ -12,6 +11,7 @@
 /// <returns></returns>
 int APIENTRY WinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE _hInst, _In_ LPSTR _lpstr, _In_ int _intnum)
 {
+	//使用しないパラメータについて
 	UNREFERENCED_PARAMETER(_hInst);
 	UNREFERENCED_PARAMETER(_lpstr);
 	UNREFERENCED_PARAMETER(_intnum);
@@ -19,16 +19,15 @@ int APIENTRY WinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE _hInst, _In_ LPSTR
 	//高DPI対応
 	::SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
-	//相対パスを有効にする
+	//実行ファイルパスを相対パスの基点にする
 	Utility::SetBasePath();
 
 #ifdef _DEBUG
-	Utility::DisplayConsole();
+	Utility::DisplayConsole(); //デバッグコンソール表示
 #endif
 
 	Core::MakeInstance(hInst, L"ゲーム", 2560, 1440);
 	Core::SetWindow();
-	//Core::Run(std::make_shared<VoidScene>());
 	Core::Run();
 
 	return 0;

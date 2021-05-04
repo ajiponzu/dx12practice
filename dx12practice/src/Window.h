@@ -37,7 +37,6 @@ using namespace Microsoft::WRL;
 #include <vector>
 
 class Scene;
-using ScenePtr = std::shared_ptr<Scene>;
 
 /// <summary>
 /// ウィンドウと描画の統括
@@ -50,7 +49,7 @@ private:
 	UINT mWidth = 0;
 	UINT mHeight = 0;
 
-	ScenePtr mScene;
+	std::unique_ptr<Scene> mScene;
 
 	/*directx12周り*/
 	ComPtr<IDXGISwapChain4> mSwapChain;
@@ -77,7 +76,7 @@ public:
 	void MakeGraphicsPipeline();
 	void ClearAppRenderTargetView(UINT renderTargetsNum);
 
-	void SetScene(ScenePtr pScene) { mScene = pScene; }
+	void SetScene(std::unique_ptr<Scene>& pScene) { mScene = std::move(pScene); }
 
 private:
 	void Init();
