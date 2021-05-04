@@ -1,5 +1,5 @@
-#include "Core.h"
-#include "Utility.h"
+#include "corelib/Core.h"
+#include "corelib/Utility.h"
 
 /// <summary>
 /// エントリポイント
