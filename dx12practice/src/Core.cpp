@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "Core.h"
 #include "Window.h"
 
