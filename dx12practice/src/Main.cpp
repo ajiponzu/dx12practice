@@ -1,5 +1,6 @@
-#include "src/Core.h"
-#include "src/Utility.h"
+#include "pch.h"
+#include "Core.h"
+#include "Utility.h"
 
 /// <summary>
 /// エントリポイント

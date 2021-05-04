@@ -1,4 +1,6 @@
+//#include "pch.h"
 #include "Scene.h"
+#include "Window.h"
 
 void Scene::Update(Window& window)
 {
