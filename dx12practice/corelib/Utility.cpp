@@ -1,7 +1,7 @@
 #include "Utility.h"
 
 /// <summary>
-/// ƒfƒoƒbƒO—p
+/// ãƒ‡ãƒãƒƒã‚°ç”¨
 /// </summary>
 /// <param name="format"></param>
 /// <param name=""></param>
@@ -15,7 +15,7 @@ void Utility::DebugOutputFormatString(const char* format, ...) {
 }
 
 /// <summary>
-/// ƒfƒoƒbƒO—p
+/// ãƒ‡ãƒãƒƒã‚°ç”¨
 /// </summary>
 void Utility::EnableDebugLayer()
 {
@@ -28,9 +28,9 @@ void Utility::EnableDebugLayer()
 void Utility::DisplayConsole()
 {
 	FILE* fp = nullptr;
-	::AllocConsole(); //ƒRƒ“ƒ\[ƒ‹ì¬
-    ::freopen_s(&fp, "CONOUT$", "w", stdout) ; //ƒRƒ“ƒ\[ƒ‹‚Æ•W€o—Í‚ğÚ‘±
-    ::freopen_s(&fp, "CONIN$", "r", stdin); //ƒRƒ“ƒ\[ƒ‹‚Æ•W€“ü—Í‚ğÚ‘±
+	::AllocConsole(); //ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ä½œæˆ
+	::freopen_s(&fp, "CONOUT$", "w", stdout); //ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ã¨æ¨™æº–å‡ºåŠ›ã‚’æ¥ç¶š
+	::freopen_s(&fp, "CONIN$", "r", stdin); //ã‚³ãƒ³ã‚½ãƒ¼ãƒ«ã¨æ¨™æº–å…¥åŠ›ã‚’æ¥ç¶š
 }
 
 void Utility::SetBasePath()

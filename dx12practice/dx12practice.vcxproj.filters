@@ -16,11 +16,14 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{3aaa4db9-b444-41c2-9c9b-b2c38458ffb7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Corelib">
-      <UniqueIdentifier>{0ac47f34-3c1b-4d74-8c91-d555ddf3dfba}</UniqueIdentifier>
+    <Filter Include="CoreLib">
+      <UniqueIdentifier>{c039a878-cd13-4388-a30a-2047f284fb8c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Corelib">
-      <UniqueIdentifier>{2e793d5d-faca-4c7e-9e6d-16acdbb9d05b}</UniqueIdentifier>
+    <Filter Include="CoreLib\Header Files">
+      <UniqueIdentifier>{f1d20fea-c615-4b88-9681-353e6c2fd673}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CoreLib\Source Files">
+      <UniqueIdentifier>{7e390281-de91-4f2b-be72-7106aed3c535}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -31,22 +34,22 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="corelib\Core.cpp">
-      <Filter>Source Files\Corelib</Filter>
+      <Filter>CoreLib\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="corelib\PMDRenderer.cpp">
-      <Filter>Source Files\Corelib</Filter>
+      <Filter>CoreLib\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="corelib\Renderer.cpp">
-      <Filter>Source Files\Corelib</Filter>
+      <Filter>CoreLib\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="corelib\Scene.cpp">
-      <Filter>Source Files\Corelib</Filter>
+      <Filter>CoreLib\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="corelib\Utility.cpp">
-      <Filter>Source Files\Corelib</Filter>
+      <Filter>CoreLib\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="corelib\Window.cpp">
-      <Filter>Source Files\Corelib</Filter>
+      <Filter>CoreLib\Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -69,22 +72,22 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="corelib\Core.h">
-      <Filter>Header Files\Corelib</Filter>
+      <Filter>CoreLib\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="corelib\PMDRenderer.h">
-      <Filter>Header Files\Corelib</Filter>
+      <Filter>CoreLib\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="corelib\Renderer.h">
-      <Filter>Header Files\Corelib</Filter>
+      <Filter>CoreLib\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="corelib\Scene.h">
-      <Filter>Header Files\Corelib</Filter>
+      <Filter>CoreLib\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="corelib\Utility.h">
-      <Filter>Header Files\Corelib</Filter>
+      <Filter>CoreLib\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="corelib\Window.h">
-      <Filter>Header Files\Corelib</Filter>
+      <Filter>CoreLib\Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

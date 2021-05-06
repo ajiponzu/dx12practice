@@ -3,20 +3,20 @@
 #include "Scene.h"
 
 /// <summary>
-/// API˜AŒgCƒEƒBƒ“ƒhƒE•\¦
+/// APIé€£æºï¼Œã‚¦ã‚£ãƒ³ãƒ‰ã‚¦è¡¨ç¤º
 /// </summary>
 class Core
 {
 public:
 private:
-	/*win32ü‚è*/
+	/*win32å‘¨ã‚Š*/
 	HINSTANCE mHInstance = nullptr;
 	HWND mHwnd = nullptr;
 	RECT mWndRect{};
 	WNDCLASSEX mWndClass{};
 	std::wstring mWndTitle{};
 
-	/*directx12ü‚è*/
+	/*directx12å‘¨ã‚Š*/
 	D3D_FEATURE_LEVEL mFeatureLevel{};
 	ComPtr<IDXGIFactory6> mDxgiFactory;
 	ComPtr<IDXGIAdapter> mDxgiAdapter;
@@ -60,12 +60,12 @@ private:
 
 	void Init(const int& wid, const int& high);
 
-	/*win32ü‚è*/
+	/*win32å‘¨ã‚Š*/
 	ATOM RegisterWindowParam();
 	void InitWindowRect(const int& wid, const int& high);
 	HWND MakeWindow(const int& wid, const int& high);
 
-	/*directx12ü‚è*/
+	/*directx12å‘¨ã‚Š*/
 	void MakeDxgiFactory();
 	void MakeDxDevice();
 	void MakeGPUCommandTools();

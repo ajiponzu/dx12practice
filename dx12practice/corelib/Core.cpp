@@ -6,7 +6,7 @@
 using WindowPtr = std::shared_ptr<Window>;
 using WindowMap = std::unordered_map<HWND, WindowPtr>;
 
-/*static•Ï”*/
+/*staticå¤‰æ•°*/
 static  WindowMap gWindows;
 static std::unique_ptr<Core> g_pSingleton = nullptr;
 static HWND gHwnd;
@@ -59,23 +59,23 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 
 void Core::MakeInstance(HINSTANCE hInst, const std::wstring title, const int& wid, const int& high)
 {
-	//ƒXƒ}[ƒgƒ|ƒCƒ“ƒ^‚ÅƒVƒ“ƒOƒ‹ƒgƒ“
-	// 	•’Ê‚É‘‚­‚ÆC•Ê‚ÌƒNƒ‰ƒXƒƒ“ƒo‚Å‚ ‚émake_unique‚ÅprivateƒRƒ“ƒXƒgƒ‰ƒNƒ^‚ğŒÄ‚Ño‚»‚¤‚Æ‚µ‚ÄƒGƒ‰[
-	// 	‚æ‚Á‚Ä‰º‹LQl
-	//uhttp://msty.hatenablog.jp/entry/2017/05/14/172653v
+	//ã‚¹ãƒãƒ¼ãƒˆãƒã‚¤ãƒ³ã‚¿ã§ã‚·ãƒ³ã‚°ãƒ«ãƒˆãƒ³
+	// 	æ™®é€šã«æ›¸ãã¨ï¼Œåˆ¥ã®ã‚¯ãƒ©ã‚¹ãƒ¡ãƒ³ãƒã§ã‚ã‚‹make_uniqueã§privateã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã‚’å‘¼ã³å‡ºãã†ã¨ã—ã¦ã‚¨ãƒ©ãƒ¼
+	// 	ã‚ˆã£ã¦ä¸‹è¨˜å‚è€ƒ
+	//ã€Œhttp://msty.hatenablog.jp/entry/2017/05/14/172653ã€
 	if (!g_pSingleton)
 	{
-		//Core‚ğŒp³‚µ‚½ˆê“I‚È\‘¢‘Ì‚ğì¬
-		//\‘¢‘Ì‚È‚çŠî–{‚ªpublicƒƒ“ƒo‚È‚Ì‚Å, ãY—í‚É‘‚¯‚é
+		//Coreã‚’ç¶™æ‰¿ã—ãŸä¸€æ™‚çš„ãªæ§‹é€ ä½“ã‚’ä½œæˆ
+		//æ§‹é€ ä½“ãªã‚‰åŸºæœ¬ãŒpublicãƒ¡ãƒ³ãƒãªã®ã§, ç¶ºéº—ã«æ›¸ã‘ã‚‹
 		struct Instantiate : public Core
 		{
-			//eƒRƒ“ƒXƒgƒ‰ƒNƒ^‚ğŒÄ‚Ño‚µ
-			//ƒƒ“ƒoŠÖ”“à‚È‚Ì‚Å, privateƒRƒ“ƒXƒgƒ‰ƒNƒ^‚àŒÄ‚Ño‚¹‚é
+			//è¦ªã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã‚’å‘¼ã³å‡ºã—
+			//ãƒ¡ãƒ³ãƒé–¢æ•°å†…ãªã®ã§, privateã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ã‚‚å‘¼ã³å‡ºã›ã‚‹
 			Instantiate(HINSTANCE hInst, const std::wstring& title, const int& wid = 1280, const int& high = 720)
-			: Core(hInst, title, wid, high)
+				: Core(hInst, title, wid, high)
 			{}
 		};
-		//‚ ‚­‚Ü‚Åmake_unique‚ª’¼ÚŒÄ‚Ño‚·‚Ì‚Ípublic‚ÈInstantiateƒRƒ“ƒXƒgƒ‰ƒNƒ^
+		//ã‚ãã¾ã§make_uniqueãŒç›´æ¥å‘¼ã³å‡ºã™ã®ã¯publicãªInstantiateã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿
 		g_pSingleton = std::make_unique<Instantiate>(hInst, title, wid, high);
 	}
 }
@@ -98,7 +98,7 @@ void Core::Run(std::unique_ptr<Scene> pScene)
 		return;
 
 	auto hwnd = g_pSingleton->mHwnd;
-	auto &pWindow = gWindows[hwnd];
+	auto& pWindow = gWindows[hwnd];
 
 	if (!pScene)
 		pScene = std::make_unique<Scene>();
@@ -121,7 +121,7 @@ void Core::Run(std::unique_ptr<Scene> pScene)
 
 void Core::Init(const int& wid, const int& high)
 {
-	//ƒEƒBƒ“ƒhƒEì¬
+	//ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ä½œæˆ
 	gHwnd = mHwnd = MakeWindow(wid, high);
 
 #ifdef _DEBUG
@@ -144,7 +144,7 @@ ATOM Core::RegisterWindowParam()
 }
 
 /// <summary>
-/// ƒEƒBƒ“ƒhƒE‹éŒ`‚Ì‰Šú‰»
+/// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦çŸ©å½¢ã®åˆæœŸåŒ–
 /// </summary>
 void Core::InitWindowRect(const int& wid, const int& high)
 {
@@ -164,19 +164,19 @@ HWND Core::MakeWindow(const int& wid, const int& high)
 		mWndClass.lpszClassName, mWndClass.lpszClassName,
 		WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT, CW_USEDEFAULT,
-		wid, high, 	nullptr, nullptr, mWndClass.hInstance, nullptr
+		wid, high, nullptr, nullptr, mWndClass.hInstance, nullptr
 	);
 }
 
 void Core::MakeDxgiFactory()
 {
-	//GPU‚Æ‚ÌƒAƒ_ƒvƒ^‚ğ“¾‚é‚½‚ß‚É•K—v‚Èƒtƒ@ƒNƒgƒŠ‚ğì¬
+	//GPUã¨ã®ã‚¢ãƒ€ãƒ—ã‚¿ã‚’å¾—ã‚‹ãŸã‚ã«å¿…è¦ãªãƒ•ã‚¡ã‚¯ãƒˆãƒªã‚’ä½œæˆ
 	ThrowIfFailed(::CreateDXGIFactory1(IID_PPV_ARGS(&mDxgiFactory)));
 }
 
 void Core::MakeDxDevice()
 {
-	//NVIDIA»GPU‚ğg—p‚·‚é‚½‚ß‚Ìˆ—
+	//NVIDIAè£½GPUã‚’ä½¿ç”¨ã™ã‚‹ãŸã‚ã®å‡¦ç†
 	int i = 0;
 	while (mDxgiFactory->EnumAdapters(i, &mDxgiAdapter) != DXGI_ERROR_NOT_FOUND)
 	{
@@ -188,7 +188,7 @@ void Core::MakeDxDevice()
 		i++;
 	}
 
-	//ƒo[ƒWƒ‡ƒ“Ši”[
+	//ãƒãƒ¼ã‚¸ãƒ§ãƒ³æ ¼ç´
 	D3D_FEATURE_LEVEL levels[] = {
 		D3D_FEATURE_LEVEL_12_1,
 		D3D_FEATURE_LEVEL_12_0,
@@ -196,7 +196,7 @@ void Core::MakeDxDevice()
 		D3D_FEATURE_LEVEL_11_0,
 	};
 
-	//D3DƒfƒoƒCƒX‚Ìì¬, gFeatureLevel‚É‚Ílevels‚Ì‚Ç‚Ìƒo[ƒWƒ‡ƒ“‚É‚ÄƒfƒoƒCƒX‚ğì¬‚µ‚½‚©•Û‘¶‚³‚ê‚é
+	//D3Dãƒ‡ãƒã‚¤ã‚¹ã®ä½œæˆ, gFeatureLevelã«ã¯levelsã®ã©ã®ãƒãƒ¼ã‚¸ãƒ§ãƒ³ã«ã¦ãƒ‡ãƒã‚¤ã‚¹ã‚’ä½œæˆã—ãŸã‹ä¿å­˜ã•ã‚Œã‚‹
 	for (auto& level : levels)
 	{
 		if (SUCCEEDED(D3D12CreateDevice(mDxgiAdapter.Get(), level, IID_PPV_ARGS(&mDxDevice))))
@@ -209,55 +209,55 @@ void Core::MakeDxDevice()
 
 void Core::MakeGPUCommandTools()
 {
-	//ƒRƒ}ƒ“ƒhƒAƒƒP[ƒ^‚ÆƒRƒ}ƒ“ƒhƒŠƒXƒg‚Ì¶¬
+	//ã‚³ãƒãƒ³ãƒ‰ã‚¢ãƒ­ã‚±ãƒ¼ã‚¿ã¨ã‚³ãƒãƒ³ãƒ‰ãƒªã‚¹ãƒˆã®ç”Ÿæˆ
 	ThrowIfFailed(mDxDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&mCommandAllocator)));
 	ThrowIfFailed(mDxDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, mCommandAllocator.Get(), nullptr, IID_PPV_ARGS(&mCommandList)));
 
-	/*ƒRƒ}ƒ“ƒhƒLƒ…[‚Ìì¬*/
-	//ƒfƒXƒNƒŠƒvƒVƒ‡ƒ“\’z
+	/*ã‚³ãƒãƒ³ãƒ‰ã‚­ãƒ¥ãƒ¼ã®ä½œæˆ*/
+	//ãƒ‡ã‚¹ã‚¯ãƒªãƒ—ã‚·ãƒ§ãƒ³æ§‹ç¯‰
 	D3D12_COMMAND_QUEUE_DESC commandQDesc{};
 	commandQDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 	commandQDesc.NodeMask = 0;
 	commandQDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
-	commandQDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT; //ƒRƒ}ƒ“ƒhƒAƒƒP[ƒ^EƒRƒ}ƒ“ƒhƒŠƒXƒg‚Ì‚à‚Ì‚Æ‡‚í‚¹‚é
-	//ì¬
+	commandQDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT; //ã‚³ãƒãƒ³ãƒ‰ã‚¢ãƒ­ã‚±ãƒ¼ã‚¿ãƒ»ã‚³ãƒãƒ³ãƒ‰ãƒªã‚¹ãƒˆã®ã‚‚ã®ã¨åˆã‚ã›ã‚‹
+	//ä½œæˆ
 	ThrowIfFailed(mDxDevice->CreateCommandQueue(&commandQDesc, IID_PPV_ARGS(&mCommandQ)));
 }
 
 void Core::MakeFence()
 {
-	//ƒtƒFƒ“ƒX‚Ìì¬
+	//ãƒ•ã‚§ãƒ³ã‚¹ã®ä½œæˆ
 	ThrowIfFailed(mDxDevice->CreateFence(mFenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence)));
 }
 
 void Core::ExecuteAppCommandLists(bool isPipelineUsed)
 {
-	//‚±‚ÌƒtƒŒ[ƒ€‚É‚¨‚¯‚é–½—ß‚ÍˆÈã‚Å‚·C‚Æ‚¢‚¤ˆÓv•\¦
-	//‚±‚ê‚æ‚èã‚ÅŒÄ‚Ño‚µ‚½ƒRƒ}ƒ“ƒhƒŠƒXƒg‚Ì–½—ß‚ªCƒRƒ}ƒ“ƒhƒLƒ…[‚É‚æ‚Á‚ÄŒã‚ÉÀs‚³‚ê‚éD
+	//ã“ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã«ãŠã‘ã‚‹å‘½ä»¤ã¯ä»¥ä¸Šã§ã™ï¼Œã¨ã„ã†æ„æ€è¡¨ç¤º
+	//ã“ã‚Œã‚ˆã‚Šä¸Šã§å‘¼ã³å‡ºã—ãŸã‚³ãƒãƒ³ãƒ‰ãƒªã‚¹ãƒˆã®å‘½ä»¤ãŒï¼Œã‚³ãƒãƒ³ãƒ‰ã‚­ãƒ¥ãƒ¼ã«ã‚ˆã£ã¦å¾Œã«å®Ÿè¡Œã•ã‚Œã‚‹ï¼
 	mCommandList->Close();
 
-	//ƒRƒ}ƒ“ƒhƒLƒ…[‚É‚æ‚éƒRƒ}ƒ“ƒhƒŠƒXƒg‚ÌÀs
-	ID3D12CommandList* const commandLists[] = { mCommandList.Get() }; //ƒRƒ}ƒ“ƒhƒŠƒXƒg‚ğeƒNƒ‰ƒX‚Ì”z—ñ‚ÉŠi”[
-	mCommandQ->ExecuteCommandLists(_countof(commandLists), commandLists); //ŒãXC•¡”‚ÌƒRƒ}ƒ“ƒhƒŠƒXƒg‚ğ“n‚·‚±‚Æ‚É‚È‚é‚Æ—\‘z
+	//ã‚³ãƒãƒ³ãƒ‰ã‚­ãƒ¥ãƒ¼ã«ã‚ˆã‚‹ã‚³ãƒãƒ³ãƒ‰ãƒªã‚¹ãƒˆã®å®Ÿè¡Œ
+	ID3D12CommandList* const commandLists[] = { mCommandList.Get() }; //ã‚³ãƒãƒ³ãƒ‰ãƒªã‚¹ãƒˆã‚’è¦ªã‚¯ãƒ©ã‚¹ã®é…åˆ—ã«æ ¼ç´
+	mCommandQ->ExecuteCommandLists(_countof(commandLists), commandLists); //å¾Œã€…ï¼Œè¤‡æ•°ã®ã‚³ãƒãƒ³ãƒ‰ãƒªã‚¹ãƒˆã‚’æ¸¡ã™ã“ã¨ã«ãªã‚‹ã¨äºˆæƒ³
 
-	//GPU‚Ö–½—ßÀs‚ªI—¹‚µ‚½‚©Šm”F‚·‚é‚½‚ß‚ÌM†‚ğ‘—‚é
-	mFenceValue++; //fence‚©‚ç‚Ì˜A—”Ô†
-	mCommandQ->Signal(mFence.Get(), mFenceValue); //–½—ßÀs‚ªI—¹‚µ‚½‚çC‚±‚Ì”Ô†‚Å‘—‚è•Ô‚µ‚Ä‚Æ‚¢‚¤M†‚ğ‘—‚é
+	//GPUã¸å‘½ä»¤å®Ÿè¡ŒãŒçµ‚äº†ã—ãŸã‹ç¢ºèªã™ã‚‹ãŸã‚ã®ä¿¡å·ã‚’é€ã‚‹
+	mFenceValue++; //fenceã‹ã‚‰ã®é€£çµ¡ç•ªå·
+	mCommandQ->Signal(mFence.Get(), mFenceValue); //å‘½ä»¤å®Ÿè¡ŒãŒçµ‚äº†ã—ãŸã‚‰ï¼Œã“ã®ç•ªå·ã§é€ã‚Šè¿”ã—ã¦ã¨ã„ã†ä¿¡å·ã‚’é€ã‚‹
 
-	//ƒtƒFƒ“ƒX‚É‚æ‚Á‚ÄGPU‚Ì–½—ßÀsI—¹‚ğ˜A—‚µ‚Ä‚à‚ç‚¤
-	//‘Ò‚½‚È‚¢‚Æ“s‡‚ªˆ«‚¢‚Ì‚Å˜A—‚ª—ˆ‚é‚Ü‚Å‘Ò‚Â
-	if (mFence->GetCompletedValue() != mFenceValue) //ƒtƒFƒ“ƒX‚©‚ç˜A—‚ª‚È‚©‚Á‚½‚çƒrƒW[ƒEƒFƒCƒg
+	//ãƒ•ã‚§ãƒ³ã‚¹ã«ã‚ˆã£ã¦GPUã®å‘½ä»¤å®Ÿè¡Œçµ‚äº†ã‚’é€£çµ¡ã—ã¦ã‚‚ã‚‰ã†
+	//å¾…ãŸãªã„ã¨éƒ½åˆãŒæ‚ªã„ã®ã§é€£çµ¡ãŒæ¥ã‚‹ã¾ã§å¾…ã¤
+	if (mFence->GetCompletedValue() != mFenceValue) //ãƒ•ã‚§ãƒ³ã‚¹ã‹ã‚‰é€£çµ¡ãŒãªã‹ã£ãŸã‚‰ãƒ“ã‚¸ãƒ¼ã‚¦ã‚§ã‚¤ãƒˆ
 	{
 		auto fenceEvent = ::CreateEvent(nullptr, false, false, nullptr);
-		assert(fenceEvent && "failed to create fence event."); //‚±‚ê‚ğ‚¢‚ê‚È‚¢‚ÆŒx‚ª‚¤‚é‚³‚¢. ‹ó‚ÌƒCƒxƒ“ƒg‚ğg—p‚·‚é‚½‚ß
+		assert(fenceEvent && "failed to create fence event."); //ã“ã‚Œã‚’ã„ã‚Œãªã„ã¨è­¦å‘ŠãŒã†ã‚‹ã•ã„. ç©ºã®ã‚¤ãƒ™ãƒ³ãƒˆã‚’ä½¿ç”¨ã™ã‚‹ãŸã‚
 		mFence->SetEventOnCompletion(mFenceValue, fenceEvent);
 		::WaitForSingleObject(fenceEvent, INFINITE);
 		::CloseHandle(fenceEvent);
 	}
 
-	//‚½‚ß‚Ä‚¨‚¢‚½–½—ß‚ğƒNƒŠƒA
-	//GPU‚Æ‚Ì’ÊM‚ğI—¹‚·‚é‚²‚Æ‚ÉƒNƒŠƒA(“¯ƒtƒŒ[ƒ€‚Å‚àƒNƒŠƒA‚·‚é‚±‚Æ‚ª‚ ‚é)
-	//ƒpƒCƒvƒ‰ƒCƒ“‚ğg—p‚·‚éê‡CƒRƒ}ƒ“ƒhƒŠƒXƒg‚ÌƒNƒŠƒA‚É“n‚·•K—v‚ª‚ ‚é
+	//ãŸã‚ã¦ãŠã„ãŸå‘½ä»¤ã‚’ã‚¯ãƒªã‚¢
+	//GPUã¨ã®é€šä¿¡ã‚’çµ‚äº†ã™ã‚‹ã”ã¨ã«ã‚¯ãƒªã‚¢(åŒãƒ•ãƒ¬ãƒ¼ãƒ ã§ã‚‚ã‚¯ãƒªã‚¢ã™ã‚‹ã“ã¨ãŒã‚ã‚‹)
+	//ãƒ‘ã‚¤ãƒ—ãƒ©ã‚¤ãƒ³ã‚’ä½¿ç”¨ã™ã‚‹å ´åˆï¼Œã‚³ãƒãƒ³ãƒ‰ãƒªã‚¹ãƒˆã®ã‚¯ãƒªã‚¢ã«æ¸¡ã™å¿…è¦ãŒã‚ã‚‹
 	//auto pTemp = isPipelineUsed ? mPipelineState.Get() : nullptr;
 	auto pTemp = nullptr;
 	mCommandAllocator->Reset();

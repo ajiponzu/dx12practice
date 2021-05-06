@@ -20,7 +20,7 @@ cbuffer cbuff0 : register(b0)
 Infomation main(Input input)
 {
     Infomation inf;
-    inf.pos = mul(mul(proj, mul(view, world)), input.pos); //ƒVƒF[ƒ_‚É‚¨‚¯‚és—ñ‚ÌÏ‚Í”Šw‚Ì‡˜ : (•ÏŠ·s—ñ: ¶ˆø”) * (•ÏŠ·‘ÎÛ: ‰Eˆø”)
+    inf.pos = mul(mul(proj, mul(view, world)), input.pos); //ã‚·ã‚§ãƒ¼ãƒ€ã«ãŠã‘ã‚‹è¡Œåˆ—ã®ç©ã¯æ•°å­¦ã®é †åº : (å¤‰æ›è¡Œåˆ—: å·¦å¼•æ•°) * (å¤‰æ›å¯¾è±¡: å³å¼•æ•°)
     input.normal.w = 0;
     inf.normal = mul(world, input.normal);
     inf.vnormal = mul(view, inf.normal);

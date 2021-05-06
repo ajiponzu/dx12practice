@@ -3,7 +3,7 @@
 class Scene;
 
 /// <summary>
-/// ƒEƒBƒ“ƒhƒE‚Æ•`‰æ‚Ì“Š‡
+/// ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã¨æç”»ã®çµ±æ‹¬
 /// </summary>
 class Window
 {
@@ -15,7 +15,7 @@ private:
 
 	std::unique_ptr<Scene> mScene;
 
-	/*directx12ü‚è*/
+	/*directx12å‘¨ã‚Š*/
 	ComPtr<IDXGISwapChain4> mSwapChain;
 	std::vector<ComPtr<ID3D12Resource>> mBackBuffers;
 	ComPtr<ID3D12DescriptorHeap> mRTVHeaps;
@@ -45,7 +45,7 @@ public:
 private:
 	void Init();
 
-	/*directx12ü‚è*/
+	/*directx12å‘¨ã‚Š*/
 	void PrepareClearWindow();
 	void MakeSwapChain(ComPtr<IDXGIFactory6>& factory, ComPtr<ID3D12CommandQueue>& commandQ);
 	void MakeBackBufferAndRTV(ComPtr<ID3D12Device>& device);

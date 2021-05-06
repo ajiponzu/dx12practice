@@ -2,7 +2,7 @@
 #include "corelib/Utility.h"
 
 /// <summary>
-/// ƒGƒ“ƒgƒŠƒ|ƒCƒ“ƒg
+/// ã‚¨ãƒ³ãƒˆãƒªãƒã‚¤ãƒ³ãƒˆ
 /// </summary>
 /// <param name="hInst"></param>
 /// <param name="_hInst"></param>
@@ -11,22 +11,22 @@
 /// <returns></returns>
 int APIENTRY WinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE _hInst, _In_ LPSTR _lpstr, _In_ int _intnum)
 {
-	//g—p‚µ‚È‚¢ƒpƒ‰ƒ[ƒ^‚É‚Â‚¢‚Ä
+	//ä½¿ç”¨ã—ãªã„ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã«ã¤ã„ã¦
 	UNREFERENCED_PARAMETER(_hInst);
 	UNREFERENCED_PARAMETER(_lpstr);
 	UNREFERENCED_PARAMETER(_intnum);
 
-	//‚DPI‘Î‰
+	//é«˜DPIå¯¾å¿œ
 	::SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 
-	//Àsƒtƒ@ƒCƒ‹ƒpƒX‚ğ‘Š‘ÎƒpƒX‚ÌŠî“_‚É‚·‚é
+	//å®Ÿè¡Œãƒ•ã‚¡ã‚¤ãƒ«ãƒ‘ã‚¹ã‚’ç›¸å¯¾ãƒ‘ã‚¹ã®åŸºç‚¹ã«ã™ã‚‹
 	Utility::SetBasePath();
 
 #ifdef _DEBUG
-	Utility::DisplayConsole(); //ƒfƒoƒbƒOƒRƒ“ƒ\[ƒ‹•\¦
+	Utility::DisplayConsole(); //ãƒ‡ãƒãƒƒã‚°ã‚³ãƒ³ã‚½ãƒ¼ãƒ«è¡¨ç¤º
 #endif
 
-	Core::MakeInstance(hInst, L"ƒQ[ƒ€", 2560, 1440);
+	Core::MakeInstance(hInst, L"ã‚²ãƒ¼ãƒ ", 2560, 1440);
 	Core::SetWindow();
 	Core::Run();
 
