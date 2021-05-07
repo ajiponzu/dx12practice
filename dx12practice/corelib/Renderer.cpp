@@ -5,11 +5,102 @@
 #include "Utility.h"
 
 /// <summary>
+/// あとで絶対クラスへ分離
+/// </summary>
+void Renderer::LoadTexture()
+{
+	/*テクスチャ*/
+	//ThrowIfFailed(LoadFromWICFile(L"assets/textest200x200.png", WIC_FLAGS_NONE, &metadata, scratchImg));
+	ThrowIfFailed(LoadFromWICFile(L"assets/textest.png", WIC_FLAGS_NONE, &metadata, scratchImg));
+	auto img = scratchImg.GetImage(0, 0, 0);
+
+	//CPUとGPU間のバッファ
+	D3D12_HEAP_PROPERTIES uploadHeapProp{};
+	uploadHeapProp.Type = D3D12_HEAP_TYPE_UPLOAD;
+	uploadHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	uploadHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+	uploadHeapProp.CreationNodeMask = 0;
+	uploadHeapProp.VisibleNodeMask = 0;
+
+	//上記のバッファと異なる
+	//シェーダから見えるバッファ
+	D3D12_RESOURCE_DESC resDesc{};
+	resDesc.Format = DXGI_FORMAT_UNKNOWN;
+	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	auto pixelsize = scratchImg.GetPixelsSize();
+	resDesc.Width = Utility::AlignmentedSize(img->rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * img->height;
+	resDesc.Height = 1;
+	resDesc.DepthOrArraySize = 1;
+	resDesc.MipLevels = 1;
+	resDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+	resDesc.SampleDesc.Count = 1;
+	resDesc.SampleDesc.Quality = 0;
+
+	ThrowIfFailed(Core::GetInstance().GetDevice()->CreateCommittedResource(
+		&uploadHeapProp, D3D12_HEAP_FLAG_NONE, &resDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadbuff))
+	);
+
+	D3D12_HEAP_PROPERTIES texHeapProp{};
+	texHeapProp.Type = D3D12_HEAP_TYPE_DEFAULT;
+	texHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	texHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+	texHeapProp.CreationNodeMask = 0;
+	texHeapProp.VisibleNodeMask = 0;
+
+	resDesc.Format = metadata.format;
+	resDesc.Width = static_cast<UINT>(metadata.width);
+	resDesc.Height = static_cast<UINT>(metadata.height);
+	resDesc.DepthOrArraySize = static_cast<UINT16>(metadata.arraySize);
+	resDesc.MipLevels = static_cast<UINT16>(metadata.mipLevels);
+	resDesc.Dimension = static_cast<D3D12_RESOURCE_DIMENSION>(metadata.dimension);
+	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+
+	ThrowIfFailed(Core::GetInstance().GetDevice()->CreateCommittedResource(
+		&texHeapProp, D3D12_HEAP_FLAG_NONE, &resDesc,
+		D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&mTexBuffer))
+	);
+	uint8_t* pMapforImg = nullptr;
+	ThrowIfFailed(uploadbuff->Map(0, nullptr, (void**)&pMapforImg));
+	auto srcAddress = img->pixels;
+	auto rowPitch = Utility::AlignmentedSize(img->rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+	for (size_t y = 0; y < img->height; y++)
+	{
+		std::copy_n(srcAddress, rowPitch, pMapforImg);
+		srcAddress += img->rowPitch;
+		pMapforImg += rowPitch;
+	}
+	uploadbuff->Unmap(0, nullptr);
+
+	dst.pResource = mTexBuffer.Get();
+	dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+	dst.SubresourceIndex = 0;
+
+	src.pResource = uploadbuff.Get();
+	src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint{};
+	UINT nrow;
+	UINT64 rowsize, size;
+	auto desc = mTexBuffer->GetDesc();
+	Core::GetInstance().GetDevice()->GetCopyableFootprints(&desc, 0, 1, 0, &footprint, &nrow, &rowsize, &size);
+	src.PlacedFootprint = footprint;
+	src.PlacedFootprint.Offset = 0;
+	src.PlacedFootprint.Footprint.Width = static_cast<UINT>(metadata.width);
+	src.PlacedFootprint.Footprint.Height = static_cast<UINT>(metadata.height);
+	src.PlacedFootprint.Footprint.Depth = static_cast<UINT>(metadata.depth);
+	src.PlacedFootprint.Footprint.RowPitch = static_cast<UINT>(Utility::AlignmentedSize(img->rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT));
+	src.PlacedFootprint.Footprint.Format = img->format;
+
+	/*end*/
+}
+
+/// <summary>
 /// ルートシグネチャの作成
 /// </summary>
 /// <param name="scene"></param>
 /// <param name="window"></param>
-/// <returns>ルートシグネチャ作成時に用いたディスクリプタテーブル</returns>
+/// <param name="descTblRange"></param>
 void Renderer::CreateAppRootSignature(Scene& scene, Window& window, std::vector<CD3DX12_DESCRIPTOR_RANGE>& descTblRange)
 {
 	//テクスチャ用
@@ -49,99 +140,12 @@ void Renderer::CreateAppRootSignature(Scene& scene, Window& window, std::vector<
 }
 
 /// <summary>
-/// パイプライン外リソースの作成・送信
+/// オブジェクトの行列とGPUのバッファとの関連付け
 /// </summary>
-void Renderer::CreateAppResources(Scene& scene, Window& window, std::vector<CD3DX12_DESCRIPTOR_RANGE>& descTblRange)
+/// <param name="scene"></param>
+/// <param name="window"></param>
+void Renderer::LinkMatrixAndCBuffer(Scene& scene, Window& window)
 {
-	/*テクスチャ*/
-	TexMetadata metadata{};
-	ScratchImage scratchImg{};
-	//ThrowIfFailed(LoadFromWICFile(L"assets/textest200x200.png", WIC_FLAGS_NONE, &metadata, scratchImg));
-	ThrowIfFailed(LoadFromWICFile(L"assets/textest.png", WIC_FLAGS_NONE, &metadata, scratchImg));
-	auto img = scratchImg.GetImage(0, 0, 0);
-
-	//CPUとGPU間のバッファ
-	D3D12_HEAP_PROPERTIES uploadHeapProp{};
-	uploadHeapProp.Type = D3D12_HEAP_TYPE_UPLOAD;
-	uploadHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	uploadHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-	uploadHeapProp.CreationNodeMask = 0;
-	uploadHeapProp.VisibleNodeMask = 0;
-
-	//上記のバッファと異なる
-	//シェーダから見えるバッファ
-	D3D12_RESOURCE_DESC resDesc{};
-	resDesc.Format = DXGI_FORMAT_UNKNOWN;
-	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	auto pixelsize = scratchImg.GetPixelsSize();
-	resDesc.Width = Utility::AlignmentedSize(img->rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * img->height;
-	resDesc.Height = 1;
-	resDesc.DepthOrArraySize = 1;
-	resDesc.MipLevels = 1;
-	resDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-	resDesc.SampleDesc.Count = 1;
-	resDesc.SampleDesc.Quality = 0;
-
-	ComPtr<ID3D12Resource> uploadbuff = nullptr;
-	ThrowIfFailed(Core::GetInstance().GetDevice()->CreateCommittedResource(
-		&uploadHeapProp, D3D12_HEAP_FLAG_NONE, &resDesc,
-		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadbuff))
-	);
-
-	D3D12_HEAP_PROPERTIES texHeapProp{};
-	texHeapProp.Type = D3D12_HEAP_TYPE_DEFAULT;
-	texHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	texHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-	texHeapProp.CreationNodeMask = 0;
-	texHeapProp.VisibleNodeMask = 0;
-
-	resDesc.Format = metadata.format;
-	resDesc.Width = static_cast<UINT>(metadata.width);
-	resDesc.Height = static_cast<UINT>(metadata.height);
-	resDesc.DepthOrArraySize = static_cast<UINT16>(metadata.arraySize);
-	resDesc.MipLevels = static_cast<UINT16>(metadata.mipLevels);
-	resDesc.Dimension = static_cast<D3D12_RESOURCE_DIMENSION>(metadata.dimension);
-	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-
-	ThrowIfFailed(Core::GetInstance().GetDevice()->CreateCommittedResource(
-		&texHeapProp, D3D12_HEAP_FLAG_NONE, &resDesc,
-		D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&mTexBuffer))
-	);
-	uint8_t* mapforImg = nullptr;
-	ThrowIfFailed(uploadbuff->Map(0, nullptr, (void**)&mapforImg));
-	auto srcAddress = img->pixels;
-	auto rowPitch = Utility::AlignmentedSize(img->rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
-	for (size_t y = 0; y < img->height; y++)
-	{
-		std::copy_n(srcAddress, rowPitch, mapforImg);
-		srcAddress += img->rowPitch;
-		mapforImg += rowPitch;
-	}
-	uploadbuff->Unmap(0, nullptr);
-
-	D3D12_TEXTURE_COPY_LOCATION src{}, dst{};
-	dst.pResource = mTexBuffer.Get();
-	dst.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-	dst.SubresourceIndex = 0;
-
-	src.pResource = uploadbuff.Get();
-	src.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint{};
-	UINT nrow;
-	UINT64 rowsize, size;
-	auto desc = mTexBuffer->GetDesc();
-	Core::GetInstance().GetDevice()->GetCopyableFootprints(&desc, 0, 1, 0, &footprint, &nrow, &rowsize, &size);
-	src.PlacedFootprint = footprint;
-	src.PlacedFootprint.Offset = 0;
-	src.PlacedFootprint.Footprint.Width = static_cast<UINT>(metadata.width);
-	src.PlacedFootprint.Footprint.Height = static_cast<UINT>(metadata.height);
-	src.PlacedFootprint.Footprint.Depth = static_cast<UINT>(metadata.depth);
-	src.PlacedFootprint.Footprint.RowPitch = static_cast<UINT>(Utility::AlignmentedSize(img->rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT));
-	src.PlacedFootprint.Footprint.Format = img->format;
-
-	/*end*/
-
 	/*行列*/
 	mWorldMat = XMMatrixRotationY(XM_PIDIV4);
 	XMFLOAT3 eye(0.0f, 0.0f, -5.0f);
@@ -165,6 +169,15 @@ void Renderer::CreateAppResources(Scene& scene, Window& window, std::vector<CD3D
 	//ループ内で変換させる場合はマップしたままにしておく
 
 	/*end*/
+}
+
+/// <summary>
+/// パイプライン外リソースの作成・送信
+/// </summary>
+void Renderer::CreateAppResources(Scene& scene, Window& window, std::vector<CD3DX12_DESCRIPTOR_RANGE>& descTblRange)
+{
+	LoadTexture();
+	LinkMatrixAndCBuffer(scene, window);
 
 	/*リソース作成の仕上げ*/
 
@@ -395,7 +408,7 @@ void Renderer::LoadContents(Scene& scene, Window& window)
 {
 	std::vector<CD3DX12_DESCRIPTOR_RANGE> descTblRange{};
 	//ルートシグネチャの作成
-	 CreateAppRootSignature(scene, window, descTblRange);
+	CreateAppRootSignature(scene, window, descTblRange);
 	//外部リソース読み込み・登録
 	CreateAppResources(scene, window, descTblRange);
 	//グラフィクスパイプラインの構築

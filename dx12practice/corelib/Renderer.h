@@ -31,7 +31,15 @@ protected:
 	CD3DX12_VIEWPORT mViewport;
 	CD3DX12_RECT mScissorRect;
 
+	//テクスチャ関連(あとでクラス化する)
+	TexMetadata metadata{};
+	ScratchImage scratchImg{};
+	ComPtr<ID3D12Resource> uploadbuff;
+	D3D12_TEXTURE_COPY_LOCATION src{}, dst{};
+	void LoadTexture();
+
 	virtual void CreateAppRootSignature(Scene& scene, Window& window, std::vector<CD3DX12_DESCRIPTOR_RANGE>& descTblRange);
+	virtual void LinkMatrixAndCBuffer(Scene& scene, Window& window);
 	virtual void CreateAppResources(Scene& scene, Window& window, std::vector<CD3DX12_DESCRIPTOR_RANGE> &descTblRange);
 	virtual void CreateAppGraphicsPipelineState(Scene& scene, Window& window);
 	virtual void CreateInputAssembly(Scene& scene, Window& window);
