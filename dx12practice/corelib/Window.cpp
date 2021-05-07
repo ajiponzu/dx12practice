@@ -42,6 +42,14 @@ void Window::MakeGraphicsPipeline()
 	mScene->LoadContents(*this);
 }
 
+/// <summary>
+/// Windowクラス外からバリア展開命令を発行する場合
+/// </summary>
+void Window::UseBarrier() const
+{
+	Core::GetInstance().GetCommandList()->ResourceBarrier(1, &mBarrier);
+}
+
 void Window::Init()
 {
 	mBackBuffers.resize(mBufferCount);

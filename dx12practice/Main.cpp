@@ -1,4 +1,6 @@
 #include "corelib/Core.h"
+#include "corelib/Scene.h"
+#include "corelib/Renderer.h"
 #include "corelib/Utility.h"
 
 /// <summary>
@@ -28,7 +30,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE _hInst, _In_ LPSTR
 
 	Core::MakeInstance(hInst, L"ゲーム", 2560, 1440);
 	Core::SetWindow();
-	Core::Run();
+	Core::Run(std::move(std::make_unique<Scene>(1, std::move(std::make_unique<Renderer>()))));
 
 	return 0;
 }

@@ -92,7 +92,7 @@ Core& Core::GetInstance()
 	return *g_pSingleton;
 }
 
-void Core::Run(std::unique_ptr<Scene> pScene)
+void Core::Run(std::unique_ptr<Scene> scene)
 {
 	if (!g_pSingleton)
 		return;
@@ -100,9 +100,9 @@ void Core::Run(std::unique_ptr<Scene> pScene)
 	auto hwnd = g_pSingleton->mHwnd;
 	auto& pWindow = gWindows[hwnd];
 
-	if (!pScene)
-		pScene = std::make_unique<Scene>();
-	pWindow->SetScene(pScene);
+	if (!scene)
+		scene = std::make_unique<Scene>();
+	pWindow->SetScene(scene);
 
 	::ShowWindow(hwnd, SW_SHOW);
 

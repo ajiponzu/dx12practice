@@ -91,3 +91,8 @@ std::wstring Utility::GetWideStringFromString(const std::string& str)
 	wstr = L"assets/" + wstr;
 	return wstr;
 }
+
+size_t Utility::AlignmentedSize(size_t size, size_t alignment)
+{
+	return size + alignment - size % alignment;
+}
