@@ -3,6 +3,9 @@
 
 void Scene::Update(Window& window)
 {
+	mAngle += 0.06f;
+	mWorldMat = XMMatrixRotationY(mAngle);
+	*m_pMapMatrix = mWorldMat * mViewMat * mProjectionMat;
 }
 
 void Scene::Render(Window& window)

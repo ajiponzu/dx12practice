@@ -145,17 +145,16 @@ void Renderer::CreateAppRootSignature(Scene& scene, Window& window, std::vector<
 /// <param name="scene"></param>
 /// <param name="window"></param>
 void Renderer::LinkMatrixAndCBuffer(Scene& scene, Window& window)
-{
-	/*行列*/
-	mWorldMat = XMMatrixRotationY(XM_PIDIV4);
+{ 
+	scene.SetWorldMat(std::move(XMMatrixRotationY(XM_PI)));
 	XMFLOAT3 eye(0.0f, 0.0f, -5.0f);
 	XMFLOAT3 target(0.0f, 0.0f, 0.0f);
 	XMFLOAT3 up(0.0f, 1.0f, 0.0f);
-	mViewMat = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
-	mProjectionMat = XMMatrixPerspectiveFovLH(
-		XM_PIDIV2, static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight()),
+	scene.SetViewMat(std::move(XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up))));
+	scene.SetProjectionMat(std::move(XMMatrixPerspectiveFovLH(
+		XM_PIDIV4, static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight()),
 		1.0f, 10.0f
-	);
+	)));
 
 	auto pTempHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	auto pTempResourceDesc = CD3DX12_RESOURCE_DESC::Buffer((sizeof(XMMATRIX) + 0xff) & ~0xff); //アラインメント
@@ -164,11 +163,8 @@ void Renderer::LinkMatrixAndCBuffer(Scene& scene, Window& window)
 		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&mConstantBuffer)
 	));
 
-	ThrowIfFailed(mConstantBuffer->Map(0, nullptr, (void**)&m_pMapMatrix));
-	*m_pMapMatrix = mWorldMat * mViewMat * mProjectionMat;
+	ThrowIfFailed(mConstantBuffer->Map(0, nullptr, (void**)scene.GetPMapMatrix()));
 	//ループ内で変換させる場合はマップしたままにしておく
-
-	/*end*/
 }
 
 /// <summary>

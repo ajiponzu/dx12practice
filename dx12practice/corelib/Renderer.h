@@ -20,11 +20,6 @@ protected:
 	ComPtr<ID3D12DescriptorHeap> mResourceDescHeap;
 	ComPtr<ID3D12Resource> mTexBuffer;
 	ComPtr<ID3D12Resource> mConstantBuffer;
-	XMMATRIX mWorldMat{};
-	XMMATRIX mViewMat{};
-	XMMATRIX mProjectionMat{};
-	XMMATRIX* m_pMapMatrix = nullptr;
-	float mAngle = 0.0f;
 
 	//ビューポートとシザー矩形
 	//これらはCOMではない

@@ -18,5 +18,7 @@ float4 CircleTutorial(in Infomation inf)
 
 float4 main(Infomation inf) : SV_TARGET
 {
-    return float4(tex.Sample(smp, inf.uv));
+    float4 output = tex.Sample(smp, inf.uv);
+    output.rgb = lerp(output.rgb, SetCircle(float3(1., 1., 1.), .5, inf.uv), float3(inf.uv, 0.));
+    return output;
 }
