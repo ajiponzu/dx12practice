@@ -1,32 +1,25 @@
 #pragma once
-#include "Renderer.h"
 
 class Window;
+class Renderer;
+class Actor;
 
 class Scene
 {
 protected:
 	UINT mRenderTargetsNum = 1;
 	std::shared_ptr<Renderer> mRenderer;
+	std::vector<std::shared_ptr<Actor>> mActors;
 
-	XMMATRIX mWorldMat{};
-	XMMATRIX mViewMat{};
-	XMMATRIX mProjectionMat{};
-	XMMATRIX* m_pMapMatrix = nullptr;
-	float mAngle = 0.0f;
+	Scene(std::unique_ptr<Renderer> renderer, UINT renderTargetsNum = 1);
 
 public:
-	Scene(UINT renderTargetsNum = 1, std::unique_ptr<Renderer> renderer = nullptr)
-		: mRenderTargetsNum(renderTargetsNum), mRenderer(std::move(renderer)) {}
+	Scene(UINT renderTargetsNum = 1);
 
 	virtual void Update(Window& window);
 	virtual void Render(Window& window);
 	virtual void LoadContents(Window& window);
 
-	void SetWorldMat(XMMATRIX&& worldMat) { mWorldMat = worldMat; }
-	void SetViewMat(XMMATRIX&& viewMat) { mViewMat = viewMat; }
-	void SetProjectionMat(XMMATRIX&& projectionMat) { mProjectionMat = projectionMat; }
-	XMMATRIX* const* GetPMapMatrix() const { return &m_pMapMatrix; }
-
 	const UINT& GetRenderTargetsNum() const { return mRenderTargetsNum; }
+	const std::vector<std::shared_ptr<Actor>>& GetActors() const { return mActors; }
 };

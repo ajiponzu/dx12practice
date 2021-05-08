@@ -1,11 +1,24 @@
 #include "Scene.h"
 #include "Window.h"
+#include "Renderer.h"
+#include "Actor.h"
+
+Scene::Scene(std::unique_ptr<Renderer> renderer, UINT renderTargetsNum)
+	: mRenderTargetsNum(renderTargetsNum)
+{
+	mRenderer = std::move(renderer);
+}
+
+Scene::Scene(UINT renderTargetsNum)
+	: mRenderTargetsNum(renderTargetsNum)
+{
+	mRenderer = nullptr;
+}
 
 void Scene::Update(Window& window)
 {
-	mAngle += 0.06f;
-	mWorldMat = XMMatrixRotationY(mAngle);
-	*m_pMapMatrix = mWorldMat * mViewMat * mProjectionMat;
+	for (auto& actor : mActors)
+		actor->Update(*this);
 }
 
 void Scene::Render(Window& window)
@@ -17,6 +30,9 @@ void Scene::Render(Window& window)
 
 void Scene::LoadContents(Window& window)
 {
+	for (auto& actor : mActors)
+		actor->LoadContents(*this);
+
 	if (mRenderer)
 		mRenderer->LoadContents(*this, window);
 }

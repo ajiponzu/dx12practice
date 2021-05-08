@@ -1,7 +1,8 @@
 #include "corelib/Core.h"
-#include "corelib/Scene.h"
 #include "corelib/Renderer.h"
 #include "corelib/Utility.h"
+
+#include "src/TestScene.h"
 
 /// <summary>
 /// エントリポイント
@@ -27,10 +28,18 @@ int APIENTRY WinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE _hInst, _In_ LPSTR
 #ifdef _DEBUG
 	Utility::DisplayConsole(); //デバッグコンソール表示
 #endif
+	/*上は触らない*/
+
+	/*パラメータのみ触る*/
 
 	Core::MakeInstance(hInst, L"ゲーム", 2560, 1440);
 	Core::SetWindow();
-	Core::Run(std::move(std::make_unique<Scene>(1, std::move(std::make_unique<Renderer>()))));
+
+	auto renderer = std::make_unique<Renderer>();
+	auto scene = std::make_unique<TestScene>(std::move(renderer), 1);
+	Core::Run(std::move(scene));
+
+	/*end*/
 
 	return 0;
 }

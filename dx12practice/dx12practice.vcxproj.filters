@@ -51,6 +51,12 @@
     <ClCompile Include="corelib\Window.cpp">
       <Filter>CoreLib\Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="corelib\Actor.cpp">
+      <Filter>CoreLib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\TestScene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\VertexShader.hlsl">
@@ -88,6 +94,12 @@
     </ClInclude>
     <ClInclude Include="corelib\Window.h">
       <Filter>CoreLib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="corelib\Actor.h">
+      <Filter>CoreLib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\TestScene.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

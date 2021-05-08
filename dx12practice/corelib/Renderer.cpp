@@ -3,6 +3,7 @@
 #include "Window.h"
 #include "Scene.h"
 #include "Utility.h"
+#include "Actor.h"
 
 /// <summary>
 /// あとで絶対クラスへ分離
@@ -146,25 +147,29 @@ void Renderer::CreateAppRootSignature(Scene& scene, Window& window, std::vector<
 /// <param name="window"></param>
 void Renderer::LinkMatrixAndCBuffer(Scene& scene, Window& window)
 { 
-	scene.SetWorldMat(std::move(XMMatrixRotationY(XM_PI)));
-	XMFLOAT3 eye(0.0f, 0.0f, -5.0f);
-	XMFLOAT3 target(0.0f, 0.0f, 0.0f);
-	XMFLOAT3 up(0.0f, 1.0f, 0.0f);
-	scene.SetViewMat(std::move(XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up))));
-	scene.SetProjectionMat(std::move(XMMatrixPerspectiveFovLH(
-		XM_PIDIV4, static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight()),
-		1.0f, 10.0f
-	)));
+	auto& actors = scene.GetActors();
+	for (auto& actor : actors)
+	{
+		actor->SetWorldMat(std::move(XMMatrixRotationY(XM_PI)));
+		XMFLOAT3 eye(0.0f, 0.0f, -5.0f);
+		XMFLOAT3 target(0.0f, 0.0f, 0.0f);
+		XMFLOAT3 up(0.0f, 1.0f, 0.0f);
+		actor->SetViewMat(std::move(XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up))));
+		actor->SetProjectionMat(std::move(XMMatrixPerspectiveFovLH(
+			XM_PIDIV4, static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight()),
+			1.0f, 10.0f
+		)));
 
-	auto pTempHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-	auto pTempResourceDesc = CD3DX12_RESOURCE_DESC::Buffer((sizeof(XMMATRIX) + 0xff) & ~0xff); //アラインメント
-	ThrowIfFailed(Core::GetInstance().GetDevice()->CreateCommittedResource(
-		&pTempHeapProps, D3D12_HEAP_FLAG_NONE, &pTempResourceDesc,
-		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&mConstantBuffer)
-	));
+		auto pTempHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+		auto pTempResourceDesc = CD3DX12_RESOURCE_DESC::Buffer((sizeof(XMMATRIX) + 0xff) & ~0xff); //アラインメント
+		ThrowIfFailed(Core::GetInstance().GetDevice()->CreateCommittedResource(
+			&pTempHeapProps, D3D12_HEAP_FLAG_NONE, &pTempResourceDesc,
+			D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&mConstantBuffer)
+		));
 
-	ThrowIfFailed(mConstantBuffer->Map(0, nullptr, (void**)scene.GetPMapMatrix()));
-	//ループ内で変換させる場合はマップしたままにしておく
+		ThrowIfFailed(mConstantBuffer->Map(0, nullptr, (void**)actor->GetPMapMatrix()));
+		//ループ内で変換させる場合はマップしたままにしておく
+	}
 }
 
 /// <summary>
