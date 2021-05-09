@@ -11,8 +11,6 @@ protected:
 	std::shared_ptr<Renderer> mRenderer;
 	std::vector<std::shared_ptr<Actor>> mActors;
 
-	Scene(std::unique_ptr<Renderer> renderer, UINT renderTargetsNum = 1);
-
 public:
 	Scene(UINT renderTargetsNum = 1);
 
@@ -22,4 +20,7 @@ public:
 
 	const UINT& GetRenderTargetsNum() const { return mRenderTargetsNum; }
 	const std::vector<std::shared_ptr<Actor>>& GetActors() const { return mActors; }
+
+protected:
+	Scene(std::unique_ptr<Renderer> renderer, UINT renderTargetsNum = 1);
 };

@@ -172,6 +172,7 @@
     <ClCompile Include="corelib\PMDRenderer.cpp" />
     <ClCompile Include="corelib\Renderer.cpp" />
     <ClCompile Include="corelib\Scene.cpp" />
+    <ClCompile Include="corelib\Texture.cpp" />
     <ClCompile Include="corelib\Utility.cpp" />
     <ClCompile Include="corelib\Window.cpp" />
     <ClCompile Include="Main.cpp">
@@ -233,6 +234,7 @@
     <ClInclude Include="corelib\PMDRenderer.h" />
     <ClInclude Include="corelib\Renderer.h" />
     <ClInclude Include="corelib\Scene.h" />
+    <ClInclude Include="corelib\Texture.h" />
     <ClInclude Include="corelib\Utility.h" />
     <ClInclude Include="corelib\Window.h" />
     <ClInclude Include="pch.h" />

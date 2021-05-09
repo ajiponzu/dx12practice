@@ -33,6 +33,14 @@ protected:
 	D3D12_TEXTURE_COPY_LOCATION src{}, dst{};
 	void LoadTexture();
 
+public:
+	Renderer(UINT texureNum = 1, UINT constantBufferNum = 1)
+		: mTextureNum(texureNum), mConstantBufferNum(constantBufferNum) {}
+
+	virtual void LoadContents(Scene& scene, Window& window);
+	virtual void SetCommandsForGraphicsPipeline(Scene& scene, Window& window);
+
+protected:
 	virtual void CreateAppRootSignature(Scene& scene, Window& window, std::vector<CD3DX12_DESCRIPTOR_RANGE>& descTblRange);
 	virtual void LinkMatrixAndCBuffer(Scene& scene, Window& window);
 	virtual void CreateAppResources(Scene& scene, Window& window, std::vector<CD3DX12_DESCRIPTOR_RANGE> &descTblRange);
@@ -45,10 +53,4 @@ protected:
 	virtual void SetCommandsOnIAStage(Scene& scene, Window& window, ComPtr<ID3D12GraphicsCommandList>& commandList);
 	virtual void SetCommandsOnRStage(Scene& scene, Window& window, ComPtr<ID3D12GraphicsCommandList>& commandList);
 
-public:
-	Renderer(UINT texureNum = 1, UINT constantBufferNum = 1)
-		: mTextureNum(texureNum), mConstantBufferNum(constantBufferNum) {}
-
-	virtual void LoadContents(Scene& scene, Window& window);
-	virtual void SetCommandsForGraphicsPipeline(Scene& scene, Window& window);
 };
