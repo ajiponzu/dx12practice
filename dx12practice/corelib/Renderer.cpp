@@ -212,12 +212,15 @@ void Renderer::CreateAppResources(Scene& scene, Window& window, std::vector<CD3D
 
 	/*GPUへ送信*/
 
-	Core::GetInstance().GetCommandList()->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
+	auto& core = Core::GetInstance();
+
+	core.GetCommandList()->CopyTextureRegion(&dst, 0, 0, 0, &src, nullptr);
 	window.SetBarrier(CD3DX12_RESOURCE_BARRIER::Transition(
 		mTexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
 	));
 	window.UseBarrier();
-	Core::GetInstance().ExecuteAppCommandLists(false); //パイプライン外なのでfalse
+	core.ExecuteAppCommandLists(); //パイプライン外なのでfalse
+	core.ResetGPUCommand();
 
 	/*end*/
 }
@@ -272,7 +275,7 @@ void Renderer::CreateAppGraphicsPipelineState(Scene& scene, Window& window)
 	//ルートシグネチャの登録
 	graphicsPipelineStateDesc.pRootSignature = mRootSignature.Get();
 	//パイプラインステート作成
-	ThrowIfFailed(Core::GetInstance().GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&mPipelineState)));
+	ThrowIfFailed(Core::GetInstance().GetDevice()->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&scene.GetPipelineState())));
 }
 
 /// <summary>
@@ -426,7 +429,7 @@ void Renderer::SetCommandsForGraphicsPipeline(Scene& scene, Window& window)
 	//リソースをセット
 	SetAppGPUResources(scene, window, commandList);
 	//パイプラインステートをコマンドリストにセット
-	commandList->SetPipelineState(mPipelineState.Get());
+	commandList->SetPipelineState(scene.GetPipelineState().Get());
 
 	//インプットアセンブラステージ
 	SetCommandsOnIAStage(scene, window, commandList);

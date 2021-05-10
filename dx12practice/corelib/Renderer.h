@@ -12,7 +12,6 @@ protected:
 	ComPtr<ID3D12Resource> mIdxBuffer;
 	D3D12_INDEX_BUFFER_VIEW mIdxBufferView;
 	ComPtr<ID3D12RootSignature> mRootSignature;
-	ComPtr<ID3D12PipelineState> mPipelineState;
 
 	//GPUリソース(パイプライン外)まわり
 	UINT mTextureNum = 1;

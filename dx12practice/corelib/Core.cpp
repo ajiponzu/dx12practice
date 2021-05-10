@@ -1,15 +1,18 @@
 #include "Core.h"
 #include "Window.h"
-
+#include "Scene.h"
 #include "Utility.h"
 
 using WindowPtr = std::shared_ptr<Window>;
 using WindowMap = std::unordered_map<HWND, WindowPtr>;
 
-/*static変数*/
+/*staticグローバル変数*/
 static  WindowMap gWindows;
 static std::unique_ptr<Core> g_pSingleton = nullptr;
-static HWND gHwnd;
+/*end*/
+
+/*staticクラスメンバ*/
+HWND Core::sHwnd = nullptr;
 /*end*/
 
 static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -82,8 +85,8 @@ void Core::MakeInstance(HINSTANCE hInst, const std::wstring title, const int& wi
 
 void Core::SetWindow(const int& wid, const int& high, UINT bufferCount)
 {
-	auto pWindow = std::make_shared<Window>(gHwnd, bufferCount, wid, high);
-	gWindows[gHwnd] = pWindow;
+	auto pWindow = std::make_shared<Window>(sHwnd, bufferCount, wid, high);
+	gWindows[sHwnd] = pWindow;
 }
 
 Core& Core::GetInstance()
@@ -92,19 +95,23 @@ Core& Core::GetInstance()
 	return *g_pSingleton;
 }
 
+void Core::Run()
+{
+	Run(nullptr);
+}
+
 void Core::Run(std::unique_ptr<Scene> scene)
 {
 	if (!g_pSingleton)
 		return;
 
-	auto hwnd = g_pSingleton->mHwnd;
-	auto& pWindow = gWindows[hwnd];
+	auto& pWindow = gWindows[sHwnd];
 
 	if (!scene)
 		scene = std::make_unique<Scene>();
 	pWindow->SetScene(scene);
 
-	::ShowWindow(hwnd, SW_SHOW);
+	::ShowWindow(sHwnd, SW_SHOW);
 
 	pWindow->MakeGraphicsPipeline();
 
@@ -122,7 +129,7 @@ void Core::Run(std::unique_ptr<Scene> scene)
 void Core::Init(const int& wid, const int& high)
 {
 	//ウィンドウ作成
-	gHwnd = mHwnd = MakeWindow(wid, high);
+	sHwnd = MakeWindow(wid, high);
 
 #ifdef _DEBUG
 	Utility::EnableDebugLayer();
@@ -230,7 +237,7 @@ void Core::MakeFence()
 	ThrowIfFailed(mDxDevice->CreateFence(mFenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence)));
 }
 
-void Core::ExecuteAppCommandLists(bool isPipelineUsed)
+void Core::ExecuteAppCommandLists()
 {
 	//このフレームにおける命令は以上です，という意思表示
 	//これより上で呼び出したコマンドリストの命令が，コマンドキューによって後に実行される．
@@ -254,12 +261,25 @@ void Core::ExecuteAppCommandLists(bool isPipelineUsed)
 		::WaitForSingleObject(fenceEvent, INFINITE);
 		::CloseHandle(fenceEvent);
 	}
+}
 
-	//ためておいた命令をクリア
-	//GPUとの通信を終了するごとにクリア(同フレームでもクリアすることがある)
-	//パイプラインを使用する場合，コマンドリストのクリアに渡す必要がある
-	//auto pTemp = isPipelineUsed ? mPipelineState.Get() : nullptr;
-	auto pTemp = nullptr;
+/// <summary>
+/// ためておいた命令をクリア
+/// GPUとの通信を終了するごとにクリア
+/// パイプラインを使用した場合のクリア
+/// </summary>
+/// <param name="pipelineState"></param>
+void Core::ResetGPUCommand(ComPtr<ID3D12PipelineState>& pipelineState)
+{
 	mCommandAllocator->Reset();
-	mCommandList->Reset(mCommandAllocator.Get(), pTemp);
+	mCommandList->Reset(mCommandAllocator.Get(), pipelineState.Get());
+}
+
+/// <summary>
+/// パイプラインを使用しない場合
+/// </summary>
+void Core::ResetGPUCommand()
+{
+	mCommandAllocator->Reset();
+	mCommandList->Reset(mCommandAllocator.Get(), nullptr);
 }

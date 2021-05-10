@@ -36,7 +36,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE _hInst, _In_ LPSTR
 	Core::SetWindow();
 
 	auto renderer = std::make_unique<Renderer>();
-	auto scene = std::make_unique<TestScene>(std::move(renderer), 1);
+	auto scene = std::make_unique<TestScene>(renderer, 1);
 	Core::Run(std::move(scene));
 
 	/*end*/

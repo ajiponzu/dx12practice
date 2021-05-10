@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Scene.h"
+class Scene;
 
 /// <summary>
 /// API連携，ウィンドウ表示
@@ -10,8 +10,8 @@ class Core
 public:
 private:
 	/*win32周り*/
+	static HWND sHwnd;
 	HINSTANCE mHInstance = nullptr;
-	HWND mHwnd = nullptr;
 	RECT mWndRect{};
 	WNDCLASSEX mWndClass{};
 	std::wstring mWndTitle{};
@@ -38,9 +38,12 @@ public:
 	static void MakeInstance(HINSTANCE hInst, const std::wstring title, const int& wid = 1280, const int& high = 720);
 	static void SetWindow(const int& wid = 1280, const int& high = 720, UINT bufferCount = 2);
 	static Core& GetInstance();
-	static void Run(std::unique_ptr<Scene> scene = nullptr);
+	static void Run();
+	static void Run(std::unique_ptr<Scene> scene);
 
-	void ExecuteAppCommandLists(bool isPipelineUsed);
+	void ExecuteAppCommandLists();
+	void ResetGPUCommand();
+	void ResetGPUCommand(ComPtr<ID3D12PipelineState>& pipelineState);
 
 	ComPtr<IDXGIFactory6>& GetFactory() { return mDxgiFactory; }
 	ComPtr<ID3D12Device>& GetDevice() { return mDxDevice; }

@@ -10,6 +10,7 @@ protected:
 	UINT mRenderTargetsNum = 1;
 	std::shared_ptr<Renderer> mRenderer;
 	std::vector<std::shared_ptr<Actor>> mActors;
+	ComPtr<ID3D12PipelineState> mPipelineState;
 
 public:
 	Scene(UINT renderTargetsNum = 1);
@@ -20,7 +21,8 @@ public:
 
 	const UINT& GetRenderTargetsNum() const { return mRenderTargetsNum; }
 	const std::vector<std::shared_ptr<Actor>>& GetActors() const { return mActors; }
+	ComPtr<ID3D12PipelineState>& GetPipelineState();
 
 protected:
-	Scene(std::unique_ptr<Renderer> renderer, UINT renderTargetsNum = 1);
+	Scene(std::unique_ptr<Renderer>& renderer, UINT renderTargetsNum = 1);
 };

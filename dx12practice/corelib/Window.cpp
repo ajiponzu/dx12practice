@@ -31,7 +31,8 @@ void Window::Render()
 
 	//コマンドキューによるコマンドリストの命令実行，およびフェンスからの連絡待ち
 	//パイプラインを使用するのでtrueを渡す
-	core.ExecuteAppCommandLists(false);
+	core.ExecuteAppCommandLists();
+	core.ResetGPUCommand(mScene->GetPipelineState());
 
 	//カレントバッファを表示，その後，カレントバッファが切り替わる
 	mSwapChain->Present(1, 0);
