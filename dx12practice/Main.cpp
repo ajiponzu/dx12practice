@@ -32,7 +32,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE _hInst, _In_ LPSTR
 
 	/*パラメータのみ触る*/
 
-	Core::MakeInstance(hInst, L"ゲーム", 2560, 1440);
+	Core::MakeInstance(hInst, L"ゲーム", 1280, 720);
 	Core::SetWindow();
 
 	auto renderer = std::make_unique<Renderer>();

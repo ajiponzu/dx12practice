@@ -1,4 +1,5 @@
 #include "Actor.h"
+#include "Utility.h"
 
 void Actor::Update(Scene& scene)
 {

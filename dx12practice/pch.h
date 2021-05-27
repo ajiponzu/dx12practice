@@ -14,18 +14,15 @@
 
 #include <tchar.h>
 
-#include <d3dx12.h>
 #include <dxgi1_6.h>
 #include <d3dcompiler.h>
-#include <d3dx12.h>
 #include <DirectXTex.h>
+#include <directx/d3dx12.h>
 #include <DirectXMath.h>
 using namespace DirectX;
 
 #include <wrl.h>
 using namespace Microsoft::WRL;
-
-#include <Helpers.h>
 
 #include <cstdio>
 #include <cassert>

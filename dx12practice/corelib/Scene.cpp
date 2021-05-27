@@ -2,6 +2,7 @@
 #include "Window.h"
 #include "Renderer.h"
 #include "Actor.h"
+#include "Utility.h"
 
 ComPtr<ID3D12PipelineState>& Scene::GetPipelineState()
 {
