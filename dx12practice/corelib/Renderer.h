@@ -29,8 +29,6 @@ protected:
 	TexMetadata metadata{};
 	ScratchImage scratchImg{};
 
-	void LoadTexture();
-
 public:
 	Renderer(UINT texureNum = 1, UINT constantBufferNum = 1)
 		: mTextureNum(texureNum), mConstantBufferNum(constantBufferNum) {}

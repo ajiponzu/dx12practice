@@ -4,6 +4,7 @@
 #include "Scene.h"
 #include "Utility.h"
 #include "Actor.h"
+#include "Texture.h"
 
 /// <summary>
 /// ルートシグネチャの作成
@@ -86,8 +87,10 @@ void Renderer::LinkMatrixAndCBuffer(Scene& scene, Window& window)
 /// </summary>
 void Renderer::CreateAppResources(Scene& scene, Window& window, std::vector<CD3DX12_DESCRIPTOR_RANGE>& descTblRange)
 {
-	ComPtr<ID3D12Resource> uploadbuff;
-	D3D12_TEXTURE_COPY_LOCATION locations[2];
+	ComPtr<ID3D12Resource> uploadbuff; //copytexureregionがexecuteされるまでライフタイムがあればよい
+	CD3DX12_TEXTURE_COPY_LOCATION locations[2];
+	//mTexBuffer = Texture::LoadTextureFromFile(uploadbuff, locations, "textest.png");
+	mTexBuffer = Texture::CreateGradationTexture();
 	LinkMatrixAndCBuffer(scene, window);
 
 	/*リソース作成の仕上げ*/
@@ -121,13 +124,12 @@ void Renderer::CreateAppResources(Scene& scene, Window& window, std::vector<CD3D
 
 	/*GPUへ送信*/
 
-	auto& core = Core::GetInstance();
-
-	core.GetCommandList()->CopyTextureRegion(&locations[0], 0, 0, 0, &locations[1], nullptr);
 	window.SetBarrier(CD3DX12_RESOURCE_BARRIER::Transition(
 		mTexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
 	));
 	window.UseBarrier();
+
+	auto& core = Core::GetInstance();
 	core.ExecuteAppCommandLists(); //パイプライン外なのでfalse
 	core.ResetGPUCommand();
 
@@ -164,11 +166,6 @@ void Renderer::CreateAppGraphicsPipelineState(Scene& scene, Window& window)
 		{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
 		{ "TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
 	};
-	//D3D12_INPUT_ELEMENT_DESC inputLayouts[] =
-	//{
-	//	{ "POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
-	//	{ "TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0 },
-	//};
 	graphicsPipelineStateDesc.InputLayout.pInputElementDescs = inputLayouts.data();
 	graphicsPipelineStateDesc.InputLayout.NumElements = static_cast<UINT>(inputLayouts.size());
 	//幾何情報
