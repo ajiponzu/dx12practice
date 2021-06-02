@@ -28,8 +28,7 @@ protected:
 	//テクスチャ関連(あとでクラス化する)
 	TexMetadata metadata{};
 	ScratchImage scratchImg{};
-	ComPtr<ID3D12Resource> uploadbuff;
-	D3D12_TEXTURE_COPY_LOCATION src{}, dst{};
+
 	void LoadTexture();
 
 public:
