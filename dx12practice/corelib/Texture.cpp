@@ -10,52 +10,29 @@ ComPtr<ID3D12Resource> Texture::LoadTextureFromFile(ComPtr<ID3D12Resource>& uplo
 	if (gLoadLamdaTable.empty())
 		MakeLoadLamdaTable();
 
-	ComPtr<ID3D12Resource> texbuff;
-
 	//WICテクスチャのロード
 	TexMetadata metadata = {};
 	ScratchImage scratchImg = {};
 	auto wtexpath = Utility::GetWideStringFromString(texPath);//テクスチャのファイルパス
 	auto ext = Utility::GetExtension(texPath);//拡張子を取得
-	ThrowIfFailed(gLoadLamdaTable[ext](
-		wtexpath, &metadata, scratchImg
-		));
+	ThrowIfFailed(gLoadLamdaTable[ext](wtexpath, &metadata, scratchImg));
 	auto img = scratchImg.GetImage(0, 0, 0);//生データ抽出
+	auto imgAlignSize = Utility::AlignmentedSize(img->rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
 
-	//CPUとGPU間のバッファ
-	D3D12_HEAP_PROPERTIES uploadHeapProp{};
-	uploadHeapProp.Type = D3D12_HEAP_TYPE_UPLOAD;
-	uploadHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	uploadHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-	uploadHeapProp.CreationNodeMask = 0;
-	uploadHeapProp.VisibleNodeMask = 0;
+	//CPUとGPU間のバッファのディスクリプタ
+	auto uploadHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD, 0, 0);
 
 	//上記のバッファと異なる
-	//シェーダから見えるバッファ
-	D3D12_RESOURCE_DESC resDesc{};
-	resDesc.Format = DXGI_FORMAT_UNKNOWN;
-	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	auto pixelsize = scratchImg.GetPixelsSize();
-	resDesc.Width = Utility::AlignmentedSize(img->rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * img->height;
-	resDesc.Height = 1;
-	resDesc.DepthOrArraySize = 1;
-	resDesc.MipLevels = 1;
-	resDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-	resDesc.SampleDesc.Count = 1;
-	resDesc.SampleDesc.Quality = 0;
+	//シェーダから見えるバッファのディスクリプタ
+	//D3D12_RESOURCE_DESC resDesc{};
+	auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(imgAlignSize * img->height);
 
 	ThrowIfFailed(Core::GetInstance().GetDevice()->CreateCommittedResource(
-		&uploadHeapProp, D3D12_HEAP_FLAG_NONE, &resDesc,
+		&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &resDesc,
 		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadbuff))
 	);
 
-	D3D12_HEAP_PROPERTIES texHeapProp{};
-	texHeapProp.Type = D3D12_HEAP_TYPE_DEFAULT;
-	texHeapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	texHeapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-	texHeapProp.CreationNodeMask = 0;
-	texHeapProp.VisibleNodeMask = 0;
+	auto texHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT, 0, 0);
 
 	resDesc.Format = metadata.format;
 	resDesc.Width = static_cast<UINT>(metadata.width);
@@ -65,14 +42,16 @@ ComPtr<ID3D12Resource> Texture::LoadTextureFromFile(ComPtr<ID3D12Resource>& uplo
 	resDesc.Dimension = static_cast<D3D12_RESOURCE_DIMENSION>(metadata.dimension);
 	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 
+	ComPtr<ID3D12Resource> texbuff;
 	ThrowIfFailed(Core::GetInstance().GetDevice()->CreateCommittedResource(
-		&texHeapProp, D3D12_HEAP_FLAG_NONE, &resDesc,
+		&texHeapProps, D3D12_HEAP_FLAG_NONE, &resDesc,
 		D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&texbuff))
 	);
+
 	uint8_t* pMapforImg = nullptr;
 	ThrowIfFailed(uploadbuff->Map(0, nullptr, (void**)&pMapforImg));
 	auto srcAddress = img->pixels;
-	auto rowPitch = Utility::AlignmentedSize(img->rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+	auto& rowPitch = imgAlignSize;
 	for (size_t y = 0; y < img->height; y++)
 	{
 		std::copy_n(srcAddress, rowPitch, pMapforImg);
@@ -81,26 +60,20 @@ ComPtr<ID3D12Resource> Texture::LoadTextureFromFile(ComPtr<ID3D12Resource>& uplo
 	}
 	uploadbuff->Unmap(0, nullptr);
 
-	locations[0].pResource = texbuff.Get();
-	locations[0].Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-	locations[0].SubresourceIndex = 0;
-
-	locations[1].pResource = uploadbuff.Get();
-	locations[1].Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint{};
-	UINT nrow;
-	UINT64 rowsize, size;
 	auto desc = texbuff->GetDesc();
-	Core::GetInstance().GetDevice()->GetCopyableFootprints(&desc, 0, 1, 0, &footprint, &nrow, &rowsize, &size);
-	locations[1].PlacedFootprint = footprint;
-	locations[1].PlacedFootprint.Offset = 0;
-	locations[1].PlacedFootprint.Footprint.Width = static_cast<UINT>(metadata.width);
-	locations[1].PlacedFootprint.Footprint.Height = static_cast<UINT>(metadata.height);
-	locations[1].PlacedFootprint.Footprint.Depth = static_cast<UINT>(metadata.depth);
-	locations[1].PlacedFootprint.Footprint.RowPitch = static_cast<UINT>(Utility::AlignmentedSize(img->rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT));
-	locations[1].PlacedFootprint.Footprint.Format = img->format;
+	Core::GetInstance().GetDevice()->GetCopyableFootprints(
+		&desc, 0, 1, 0, &footprint, nullptr, nullptr, nullptr
+	);
+	auto subResFootprint = CD3DX12_SUBRESOURCE_FOOTPRINT(resDesc, static_cast<UINT>(imgAlignSize));
+	footprint.Footprint = subResFootprint;
 
-	Core::GetInstance().GetCommandList()->CopyTextureRegion(&locations[0], 0, 0, 0, &locations[1], nullptr);
+	locations[0] = CD3DX12_TEXTURE_COPY_LOCATION(texbuff.Get(), 0);
+	locations[1] = CD3DX12_TEXTURE_COPY_LOCATION(uploadbuff.Get(), footprint);
+
+	Core::GetInstance().GetCommandList()->CopyTextureRegion(
+		&locations[0], 0, 0, 0, &locations[1], nullptr
+	);
 
 	gResourceTable[texPath] = texbuff;
 	return texbuff;
