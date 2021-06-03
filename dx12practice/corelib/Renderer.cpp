@@ -89,10 +89,9 @@ void Renderer::CreateAppResources(Scene& scene, Window& window, std::vector<CD3D
 {
 	ComPtr<ID3D12Resource> uploadbuff; //copytexureregionがexecuteされるまでライフタイムがあればよい
 	CD3DX12_TEXTURE_COPY_LOCATION locations[2];
-	//mTexBuffer = Texture::LoadTexture(uploadbuff, locations, "textest.png");
-	mTexBuffer = Texture::LoadTexture(uploadbuff, locations, "white");
-	//mTexBuffer = Texture::LoadTexture(uploadbuff, locations, "black");
-	//mTexBuffer = Texture::LoadTexture(uploadbuff, locations, "grad");
+	for (auto& texpath : Texture::GetResourceRegistory())
+		mTexBuffer = Texture::LoadTexture(uploadbuff, locations, texpath);
+
 	LinkMatrixAndCBuffer(scene, window);
 
 	/*リソース作成の仕上げ*/

@@ -2,7 +2,7 @@
 #include "Utility.h"
 #include "Core.h"
 
-ComPtr<ID3D12Resource> Texture::LoadTexture(ComPtr<ID3D12Resource>& uploadbuff, CD3DX12_TEXTURE_COPY_LOCATION locations[2], std::string texPath)
+ComPtr<ID3D12Resource> Texture::LoadTexture(ComPtr<ID3D12Resource>& uploadbuff, CD3DX12_TEXTURE_COPY_LOCATION locations[2], const std::string& texPath)
 {
 	if (gResourceTable.find(texPath) != gResourceTable.end())
 		return gResourceTable[texPath];
@@ -19,7 +19,7 @@ ComPtr<ID3D12Resource> Texture::LoadTexture(ComPtr<ID3D12Resource>& uploadbuff, 
 	return gResourceTable[texPath];
 }
 
-ComPtr<ID3D12Resource> Texture::LoadTextureFromFile(ComPtr<ID3D12Resource>& uploadbuff, CD3DX12_TEXTURE_COPY_LOCATION locations[2], std::string& texPath)
+ComPtr<ID3D12Resource> Texture::LoadTextureFromFile(ComPtr<ID3D12Resource>& uploadbuff, CD3DX12_TEXTURE_COPY_LOCATION locations[2], const std::string& texPath)
 {
 	if (gLoadLamdaTable.empty())
 		MakeLoadLamdaTable();
@@ -219,4 +219,14 @@ void Texture::MakeLoadLamdaTable()
 	{
 		return LoadFromDDSFile(path.c_str(), DDS_FLAGS_NONE, meta, img);
 	};
+}
+
+void Texture::RegistResource(std::string texPath)
+{
+	gResourceRegistory.insert(texPath);
+}
+
+std::set<std::string>& Texture::GetResourceRegistory()
+{
+	return gResourceRegistory;
 }

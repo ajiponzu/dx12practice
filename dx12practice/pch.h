@@ -30,5 +30,6 @@ using namespace Microsoft::WRL;
 #include <memory>
 #include <string>
 #include <tuple>
+#include <set>
 #include <unordered_map>
 #include <vector>
