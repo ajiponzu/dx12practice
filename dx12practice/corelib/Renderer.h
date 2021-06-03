@@ -25,10 +25,6 @@ protected:
 	CD3DX12_VIEWPORT mViewport;
 	CD3DX12_RECT mScissorRect;
 
-	//テクスチャ関連(あとでクラス化する)
-	TexMetadata metadata{};
-	ScratchImage scratchImg{};
-
 public:
 	Renderer(UINT texureNum = 1, UINT constantBufferNum = 1)
 		: mTextureNum(texureNum), mConstantBufferNum(constantBufferNum) {}
