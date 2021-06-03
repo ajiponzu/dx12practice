@@ -10,7 +10,7 @@ namespace Texture
 	static void MakeLoadLamdaTable();
 
 	ComPtr<ID3D12Resource> LoadTextureFromFile(ComPtr<ID3D12Resource>& uploadbuff, CD3DX12_TEXTURE_COPY_LOCATION locations[2], std::string texPath);
-	ComPtr<ID3D12Resource> CreateWhiteTexture();
-	ComPtr<ID3D12Resource> CreateBlackTexture();
-	ComPtr<ID3D12Resource> CreateGradationTexture();
+	ComPtr<ID3D12Resource> CreateWhiteTexture(ComPtr<ID3D12Resource>& uploadbuff, CD3DX12_TEXTURE_COPY_LOCATION locations[2]);
+	ComPtr<ID3D12Resource> CreateBlackTexture(ComPtr<ID3D12Resource>& uploadbuff, CD3DX12_TEXTURE_COPY_LOCATION locations[2]);
+	ComPtr<ID3D12Resource> CreateGradationTexture(ComPtr<ID3D12Resource>& uploadbuff, CD3DX12_TEXTURE_COPY_LOCATION locations[2]);
 };
