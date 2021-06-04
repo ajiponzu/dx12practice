@@ -31,7 +31,6 @@ void Window::Render()
 	commandList->ResourceBarrier(1, &mBarrier);
 
 	//コマンドキューによるコマンドリストの命令実行，およびフェンスからの連絡待ち
-	//パイプラインを使用するのでtrueを渡す
 	core.ExecuteAppCommandLists();
 	core.ResetGPUCommand(mScene->GetPipelineState());
 

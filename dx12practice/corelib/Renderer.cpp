@@ -132,7 +132,7 @@ void Renderer::CreateAppResources(Scene& scene, Window& window, std::vector<CD3D
 	window.UseBarrier();
 
 	auto& core = Core::GetInstance();
-	core.ExecuteAppCommandLists(); //パイプライン外なのでfalse
+	core.ExecuteAppCommandLists();
 	core.ResetGPUCommand();
 
 	/*end*/
@@ -158,10 +158,10 @@ void Renderer::CreateAppGraphicsPipelineState(Scene& scene, Window& window)
 	graphicsPipelineStateDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	//ラスタライザステート
 	graphicsPipelineStateDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-	graphicsPipelineStateDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	graphicsPipelineStateDesc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
 	//深度ステンシルステート
 	graphicsPipelineStateDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-	graphicsPipelineStateDesc.DepthStencilState.DepthEnable = false;
+	graphicsPipelineStateDesc.DepthStencilState.DepthEnable = true;
 	//インプットレイアウト
 	std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayouts
 	{

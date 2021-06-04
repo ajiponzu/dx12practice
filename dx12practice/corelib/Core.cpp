@@ -266,7 +266,7 @@ void Core::ExecuteAppCommandLists()
 /// <summary>
 /// ためておいた命令をクリア
 /// GPUとの通信を終了するごとにクリア
-/// パイプラインを使用した場合のクリア
+/// コマンドリストからパイプラインを登録解除する
 /// </summary>
 /// <param name="pipelineState"></param>
 void Core::ResetGPUCommand(ComPtr<ID3D12PipelineState>& pipelineState)
@@ -276,7 +276,7 @@ void Core::ResetGPUCommand(ComPtr<ID3D12PipelineState>& pipelineState)
 }
 
 /// <summary>
-/// パイプラインを使用しない場合
+/// パイプラインを登録していない場合
 /// </summary>
 void Core::ResetGPUCommand()
 {
