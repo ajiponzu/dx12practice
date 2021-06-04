@@ -35,7 +35,7 @@ public:
 protected:
 	virtual void CreateAppRootSignature(Scene& scene, Window& window, std::vector<CD3DX12_DESCRIPTOR_RANGE>& descTblRange);
 	virtual void LinkMatrixAndCBuffer(Scene& scene, Window& window);
-	virtual void CreateAppResources(Scene& scene, Window& window, std::vector<CD3DX12_DESCRIPTOR_RANGE> &descTblRange);
+	virtual void CreateAppResources(Scene& scene, Window& window, std::vector<CD3DX12_DESCRIPTOR_RANGE>& descTblRange);
 	virtual void CreateAppGraphicsPipelineState(Scene& scene, Window& window);
 	virtual void CreateInputAssembly(Scene& scene, Window& window);
 	virtual void CreateViewportAndScissorRect(Scene& scene, Window& window);
@@ -44,5 +44,4 @@ protected:
 	virtual void SetAppGPUResources(Scene& scene, Window& window, ComPtr<ID3D12GraphicsCommandList>& commandList);
 	virtual void SetCommandsOnIAStage(Scene& scene, Window& window, ComPtr<ID3D12GraphicsCommandList>& commandList);
 	virtual void SetCommandsOnRStage(Scene& scene, Window& window, ComPtr<ID3D12GraphicsCommandList>& commandList);
-
 };

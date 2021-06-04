@@ -20,27 +20,27 @@
  *  IN THE SOFTWARE.
  */
 
-/**
- *  @file Helpers.h
- *  @date August 28, 2017
- *  @author Jeremiah van Oosten
- *
- *  @brief Helper functions.
- */
+ /**
+	*  @file Helpers.h
+	*  @date August 28, 2017
+	*  @author Jeremiah van Oosten
+	*
+	*  @brief Helper functions.
+	*/
 
 #pragma once
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h> // For HRESULT
 
-// From DXSampleHelper.h 
-// Source: https://github.com/Microsoft/DirectX-Graphics-Samples
+	// From DXSampleHelper.h
+	// Source: https://github.com/Microsoft/DirectX-Graphics-Samples
 inline void ThrowIfFailed(HRESULT hr)
 {
-    if (FAILED(hr))
-    {
-        throw std::exception();
-    }
+	if (FAILED(hr))
+	{
+		throw std::exception();
+	}
 }
 
 #define STR1(x) #x

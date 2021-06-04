@@ -5,8 +5,8 @@
 void Actor::Update(Scene& scene)
 {
 	mAngle += 0.06f;
-	mWorldMat = XMMatrixRotationY(mAngle);
-	*m_pMapMatrix = mWorldMat * mViewMat * mProjectionMat;
+	mMatrix.world = XMMatrixRotationY(mAngle);
+	*m_pMapMatrix = mMatrix;
 }
 
 void Actor::Render(Scene& scene)
@@ -15,6 +15,6 @@ void Actor::Render(Scene& scene)
 
 void Actor::LoadContents(Scene& scene)
 {
-	//Texture::RegistResource("textest.png");
-	Texture::RegistResource("white");
+	Texture::RegistResource("textest.png");
+	//Texture::RegistResource("white");
 }

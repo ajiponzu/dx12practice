@@ -1,15 +1,21 @@
 #pragma once
 
+struct MatrixData
+{
+	XMMATRIX world;
+	XMMATRIX view;
+	XMMATRIX projection;
+	XMFLOAT3 eye;
+};
+
 class Scene;
 
 class Actor
 {
 protected:
-	XMMATRIX mWorldMat{};
-	XMMATRIX mViewMat{};
-	XMMATRIX mProjectionMat{};
-	XMMATRIX* m_pMapMatrix = nullptr;
 	float mAngle = 0.0f;
+	MatrixData mMatrix{};
+	MatrixData* m_pMapMatrix = nullptr;
 
 public:
 	Actor(float angle = 0.0f) : mAngle(angle) {}
@@ -18,9 +24,6 @@ public:
 	virtual void Render(Scene& scene);
 	virtual void LoadContents(Scene& scene);
 
-	void SetWorldMat(XMMATRIX&& worldMat) { mWorldMat = worldMat; }
-	void SetViewMat(XMMATRIX&& viewMat) { mViewMat = viewMat; }
-	void SetProjectionMat(XMMATRIX&& projectionMat) { mProjectionMat = projectionMat; }
-	XMMATRIX* const* GetPMapMatrix() const { return &m_pMapMatrix; }
+	void SetMatrix(MatrixData&& matrixData) { mMatrix = matrixData; }
+	MatrixData* const* GetPMapMatrix() const { return &m_pMapMatrix; }
 };
-

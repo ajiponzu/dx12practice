@@ -60,6 +60,9 @@
     <ClCompile Include="corelib\Actor.cpp">
       <Filter>CoreLib\Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\PMDActor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\VertexShader.hlsl">
@@ -108,6 +111,9 @@
     </ClInclude>
     <ClInclude Include="corelib\Actor.h">
       <Filter>CoreLib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PMDActor.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

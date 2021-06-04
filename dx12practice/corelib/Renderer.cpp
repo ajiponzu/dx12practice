@@ -56,19 +56,20 @@ void Renderer::CreateAppRootSignature(Scene& scene, Window& window, std::vector<
 /// <param name="scene"></param>
 /// <param name="window"></param>
 void Renderer::LinkMatrixAndCBuffer(Scene& scene, Window& window)
-{ 
+{
 	auto& actors = scene.GetActors();
 	for (auto& actor : actors)
 	{
-		actor->SetWorldMat(std::move(XMMatrixRotationY(XM_PI)));
-		XMFLOAT3 eye(0.0f, 0.0f, -5.0f);
-		XMFLOAT3 target(0.0f, 0.0f, 0.0f);
-		XMFLOAT3 up(0.0f, 1.0f, 0.0f);
-		actor->SetViewMat(std::move(XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up))));
-		actor->SetProjectionMat(std::move(XMMatrixPerspectiveFovLH(
+		MatrixData matrixData{};
+		XMFLOAT3 eye(0.0f, 0.0f, -5.0f), target(0.0f, 0.0f, 0.0f), up(0.0f, 1.0f, 0.0f);
+		matrixData.world = std::move(XMMatrixRotationY(XM_PI));
+		matrixData.view = std::move(XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up)));
+		matrixData.projection = std::move(XMMatrixPerspectiveFovLH(
 			XM_PIDIV4, static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight()),
 			1.0f, 10.0f
-		)));
+		));
+		matrixData.eye = std::move(eye);
+		actor->SetMatrix(std::move(matrixData));
 
 		auto pTempHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 		auto pTempResourceDesc = CD3DX12_RESOURCE_DESC::Buffer((sizeof(XMMATRIX) + 0xff) & ~0xff); //アラインメント
