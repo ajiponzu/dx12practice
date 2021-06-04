@@ -8,9 +8,9 @@ class Renderer
 protected:
 	//グラフィクスパイプラインステートまわり
 	ComPtr<ID3D12Resource> mVertBuffer;
-	D3D12_VERTEX_BUFFER_VIEW mVertBufferView;
+	D3D12_VERTEX_BUFFER_VIEW mVertBufferView{};
 	ComPtr<ID3D12Resource> mIdxBuffer;
-	D3D12_INDEX_BUFFER_VIEW mIdxBufferView;
+	D3D12_INDEX_BUFFER_VIEW mIdxBufferView{};
 	ComPtr<ID3D12RootSignature> mRootSignature;
 
 	//GPUリソース(パイプライン外)まわり
@@ -26,7 +26,7 @@ protected:
 	CD3DX12_RECT mScissorRect;
 
 public:
-	Renderer(UINT texureNum = 1, UINT constantBufferNum = 1)
+	Renderer(UINT texureNum = 1U, UINT constantBufferNum = 1U)
 		: mTextureNum(texureNum), mConstantBufferNum(constantBufferNum) {}
 
 	virtual void LoadContents(Scene& scene, Window& window);

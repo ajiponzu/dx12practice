@@ -60,8 +60,11 @@
     <ClCompile Include="corelib\Actor.cpp">
       <Filter>CoreLib\Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\PMDActor.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="corelib\PMDActor.cpp">
+      <Filter>CoreLib\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="corelib\Pmd.cpp">
+      <Filter>CoreLib\Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -112,8 +115,11 @@
     <ClInclude Include="corelib\Actor.h">
       <Filter>CoreLib\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\PMDActor.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="corelib\PMDActor.h">
+      <Filter>CoreLib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="corelib\Pmd.h">
+      <Filter>CoreLib\Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

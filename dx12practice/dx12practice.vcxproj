@@ -174,6 +174,8 @@
   <ItemGroup>
     <ClCompile Include="corelib\Actor.cpp" />
     <ClCompile Include="corelib\Core.cpp" />
+    <ClCompile Include="corelib\Pmd.cpp" />
+    <ClCompile Include="corelib\PMDActor.cpp" />
     <ClCompile Include="corelib\PMDRenderer.cpp" />
     <ClCompile Include="corelib\Renderer.cpp" />
     <ClCompile Include="corelib\Scene.cpp" />
@@ -204,7 +206,6 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pch.h</PrecompiledHeaderFile>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="src\PMDActor.cpp" />
     <ClCompile Include="src\TestScene.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -237,6 +238,8 @@
     <ClInclude Include="corelib\Actor.h" />
     <ClInclude Include="corelib\Core.h" />
     <ClInclude Include="corelib\Helpers.h" />
+    <ClInclude Include="corelib\Pmd.h" />
+    <ClInclude Include="corelib\PMDActor.h" />
     <ClInclude Include="corelib\PMDRenderer.h" />
     <ClInclude Include="corelib\Renderer.h" />
     <ClInclude Include="corelib\Scene.h" />
@@ -244,7 +247,6 @@
     <ClInclude Include="corelib\Utility.h" />
     <ClInclude Include="corelib\Window.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="src\PMDActor.h" />
     <ClInclude Include="src\TestScene.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
