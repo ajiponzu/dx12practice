@@ -24,6 +24,8 @@ ComPtr<ID3D12Resource> Texture::LoadTextureFromFile(ComPtr<ID3D12Resource>& uplo
 	if (gLoadLamdaTable.empty())
 		MakeLoadLamdaTable();
 
+	auto& device = Core::GetInstance().GetDevice();
+
 	//WICテクスチャのロード
 	TexMetadata metadata = {};
 	ScratchImage scratchImg = {};
@@ -39,7 +41,7 @@ ComPtr<ID3D12Resource> Texture::LoadTextureFromFile(ComPtr<ID3D12Resource>& uplo
 	//シェーダから見えるバッファのディスクリプタ
 	auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(imgAlignSize * img->height);
 
-	ThrowIfFailed(Core::GetInstance().GetDevice()->CreateCommittedResource(
+	ThrowIfFailed(device->CreateCommittedResource(
 		&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &resDesc,
 		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadbuff))
 	);
@@ -53,7 +55,7 @@ ComPtr<ID3D12Resource> Texture::LoadTextureFromFile(ComPtr<ID3D12Resource>& uplo
 	resDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 
 	ComPtr<ID3D12Resource> texbuff;
-	ThrowIfFailed(Core::GetInstance().GetDevice()->CreateCommittedResource(
+	ThrowIfFailed(device->CreateCommittedResource(
 		&texHeapProps, D3D12_HEAP_FLAG_NONE, &resDesc,
 		D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&texbuff))
 	);
@@ -104,6 +106,7 @@ ComPtr<ID3D12Resource> Texture::CreateGradationTexture(ComPtr<ID3D12Resource>& u
 ComPtr<ID3D12Resource> Texture::CreateTexture(ComPtr<ID3D12Resource>& uploadbuff, std::vector<uint8_t>& texData, CD3DX12_TEXTURE_COPY_LOCATION locations[2], size_t params[4])
 {
 	auto& dataWid = params[0], dataHigh = params[1], dataSizeInByte = params[2], rowPitch = params[3];
+	auto& device = Core::GetInstance().GetDevice();
 
 	auto imgAlignSize = Utility::AlignmentedSize(dataWid * dataSizeInByte, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
 
@@ -113,7 +116,7 @@ ComPtr<ID3D12Resource> Texture::CreateTexture(ComPtr<ID3D12Resource>& uploadbuff
 	//シェーダから見えるバッファのディスクリプタ
 	auto resDesc = CD3DX12_RESOURCE_DESC::Buffer(imgAlignSize * dataHigh);
 
-	ThrowIfFailed(Core::GetInstance().GetDevice()->CreateCommittedResource(
+	ThrowIfFailed(device->CreateCommittedResource(
 		&uploadHeapProps, D3D12_HEAP_FLAG_NONE, &resDesc,
 		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&uploadbuff))
 	);
@@ -121,7 +124,7 @@ ComPtr<ID3D12Resource> Texture::CreateTexture(ComPtr<ID3D12Resource>& uploadbuff
 	resDesc = CD3DX12_RESOURCE_DESC::Tex2D(DXGI_FORMAT_R8G8B8A8_UNORM, dataWid, dataHigh);
 
 	ComPtr<ID3D12Resource> texbuff;
-	ThrowIfFailed(Core::GetInstance().GetDevice()->CreateCommittedResource(
+	ThrowIfFailed(device->CreateCommittedResource(
 		&texHeapProps, D3D12_HEAP_FLAG_NONE, &resDesc,
 		D3D12_RESOURCE_STATE_COPY_DEST, nullptr, IID_PPV_ARGS(&texbuff))
 	);

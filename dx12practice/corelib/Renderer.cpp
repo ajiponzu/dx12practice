@@ -12,17 +12,18 @@
 /// <param name="scene"></param>
 /// <param name="window"></param>
 /// <param name="descTblRange"></param>
-void Renderer::CreateAppRootSignature(Scene& scene, Window& window, std::vector<CD3DX12_DESCRIPTOR_RANGE>& descTblRange)
+void Renderer::CreateAppRootSignature(Scene& scene, Window& window, std::vector<std::vector<CD3DX12_DESCRIPTOR_RANGE>>& descTblRanges)
 {
+	descTblRanges.resize(1);
 	//テクスチャ用
-	descTblRange.push_back(CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, mTextureNum, 0));
+	descTblRanges[0].push_back(CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, mTextureNum, 0));
 	//行列用
-	descTblRange.push_back(CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, mConstantBufferNum, 0));
+	descTblRanges[0].push_back(CD3DX12_DESCRIPTOR_RANGE(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, mConstantBufferNum, 0));
 
 	D3D12_ROOT_PARAMETER rootParam{};
 	rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParam.DescriptorTable.pDescriptorRanges = &descTblRange[0];
-	rootParam.DescriptorTable.NumDescriptorRanges = static_cast<UINT>(descTblRange.size());
+	rootParam.DescriptorTable.pDescriptorRanges = &descTblRanges[0][0];
+	rootParam.DescriptorTable.NumDescriptorRanges = static_cast<UINT>(descTblRanges[0].size());
 	rootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
 	D3D12_STATIC_SAMPLER_DESC samplerDesc{};
@@ -61,14 +62,15 @@ void Renderer::LinkMatrixAndCBuffer(Scene& scene, Window& window)
 	for (auto& actor : actors)
 	{
 		MatrixData matrixData{};
-		XMFLOAT3 eye(0.0f, 0.0f, -5.0f), target(0.0f, 0.0f, 0.0f), up(0.0f, 1.0f, 0.0f);
+		//XMFLOAT3 eye(0.0f, 0.0f, -5.0f), target(0.0f, 0.0f, 0.0f), up(0.0f, 1.0f, 0.0f);
+		auto initCameraPos = actor->GetInitCameraPos();
 		matrixData.world = std::move(XMMatrixRotationY(XM_PI));
-		matrixData.view = std::move(XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up)));
+		matrixData.view = std::move(XMMatrixLookAtLH(XMLoadFloat3(&initCameraPos.eye), XMLoadFloat3(&initCameraPos.target), XMLoadFloat3(&initCameraPos.up)));
 		matrixData.projection = std::move(XMMatrixPerspectiveFovLH(
 			XM_PIDIV4, static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight()),
 			1.0f, 10.0f
 		));
-		matrixData.eye = std::move(eye);
+		matrixData.eye = std::move(initCameraPos.eye);
 		actor->SetMatrix(std::move(matrixData));
 
 		auto pTempHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
@@ -86,7 +88,7 @@ void Renderer::LinkMatrixAndCBuffer(Scene& scene, Window& window)
 /// <summary>
 /// パイプライン外リソースの作成・送信
 /// </summary>
-void Renderer::CreateAppResources(Scene& scene, Window& window, std::vector<CD3DX12_DESCRIPTOR_RANGE>& descTblRange)
+void Renderer::CreateAppResources(Scene& scene, Window& window, std::vector<std::vector<CD3DX12_DESCRIPTOR_RANGE>>& descTblRanges)
 {
 	ComPtr<ID3D12Resource> uploadbuff; //copytexureregionがexecuteされるまでライフタイムがあればよい
 	CD3DX12_TEXTURE_COPY_LOCATION locations[2];
@@ -100,7 +102,7 @@ void Renderer::CreateAppResources(Scene& scene, Window& window, std::vector<CD3D
 	D3D12_DESCRIPTOR_HEAP_DESC descHeapDesc{};
 	descHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	descHeapDesc.NodeMask = 0;
-	descHeapDesc.NumDescriptors = static_cast<UINT>(descTblRange.size());
+	descHeapDesc.NumDescriptors = static_cast<UINT>(descTblRanges[0].size());
 	descHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	ThrowIfFailed(Core::GetInstance().GetDevice()->CreateDescriptorHeap(&descHeapDesc, IID_PPV_ARGS(&mResourceDescHeap)));
 
@@ -162,6 +164,8 @@ void Renderer::CreateAppGraphicsPipelineState(Scene& scene, Window& window)
 	//深度ステンシルステート
 	graphicsPipelineStateDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 	graphicsPipelineStateDesc.DepthStencilState.DepthEnable = true;
+	//深度ビューの設定
+	graphicsPipelineStateDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 	//インプットレイアウト
 	std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayouts
 	{
@@ -318,11 +322,11 @@ void Renderer::SetCommandsOnRStage(Scene& scene, Window& window, ComPtr<ID3D12Gr
 /// <param name="window"></param>
 void Renderer::LoadContents(Scene& scene, Window& window)
 {
-	std::vector<CD3DX12_DESCRIPTOR_RANGE> descTblRange{};
+	std::vector<std::vector<CD3DX12_DESCRIPTOR_RANGE>> descTblRanges{};
 	//ルートシグネチャの作成
-	CreateAppRootSignature(scene, window, descTblRange);
+	CreateAppRootSignature(scene, window, descTblRanges);
 	//外部リソース読み込み・登録
-	CreateAppResources(scene, window, descTblRange);
+	CreateAppResources(scene, window, descTblRanges);
 	//グラフィクスパイプラインの構築
 	ConstructGraphicsPipeline(scene, window);
 }

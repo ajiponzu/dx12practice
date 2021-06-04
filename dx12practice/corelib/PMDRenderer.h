@@ -32,7 +32,7 @@ struct PMDVertex
 	uint8_t edgeFlag;
 };
 
-constexpr size_t gPMDVertexSize = 38;
+constexpr size_t mPMDVertexSize = 38;
 
 //マテリアル周り
 #pragma pack(1)
@@ -79,10 +79,12 @@ struct Material
 class PMDRenderer :
 	public Renderer
 {
+protected:
 	PMDHeader mPMDHeader{};
 
 	PMDVertex mPMDVertex{};
 
+	//頂点情報
 	std::vector<uint8_t> mVertices{};
 	std::vector<uint16_t> mIndices{};
 
@@ -95,4 +97,21 @@ class PMDRenderer :
 	std::vector<ComPtr<ID3D12Resource>> mSphereResources;
 	std::vector<ComPtr<ID3D12Resource>> mSphereAdderResources;
 	std::vector<ComPtr<ID3D12Resource>> mToonResources;
+
+public:
+	PMDRenderer(UINT textureNum = 1U, UINT constantBufferNum = 1U)
+		: Renderer(textureNum, constantBufferNum) {}
+
+	//virtual void SetCommandsForGraphicsPipeline(Scene& scene, Window& window);
+
+protected:
+	virtual void CreateAppRootSignature(Scene& scene, Window& window, std::vector<std::vector<CD3DX12_DESCRIPTOR_RANGE>>& descTblRanges) override;
+	//virtual void LinkMatrixAndCBuffer(Scene& scene, Window& window);
+	virtual void CreateAppResources(Scene& scene, Window& window, std::vector<std::vector<CD3DX12_DESCRIPTOR_RANGE>>& descTblRanges) override;
+	virtual void CreateAppGraphicsPipelineState(Scene& scene, Window& window) override;
+	virtual void CreateInputAssembly(Scene& scene, Window& window) override;
+
+	virtual void SetAppGPUResources(Scene& scene, Window& window, ComPtr<ID3D12GraphicsCommandList>& commandList) override;
+
+	virtual void LoadMMD(Scene& scene, Window& window);
 };
