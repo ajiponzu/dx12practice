@@ -118,7 +118,7 @@ void Window::MakeBackBufferAndRTV(ComPtr<ID3D12Device>& device)
 	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 #else
 	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	//rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+	rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 #endif
 	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 

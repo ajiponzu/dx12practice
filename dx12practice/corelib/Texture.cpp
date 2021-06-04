@@ -31,6 +31,8 @@ ComPtr<ID3D12Resource> Texture::LoadTextureFromFile(ComPtr<ID3D12Resource>& uplo
 	ScratchImage scratchImg = {};
 	auto wtexpath = Utility::GetWideStringFromString(texPath);//テクスチャのファイルパス
 	auto ext = Utility::GetExtension(texPath);//拡張子を取得
+	if (ext == "psd")
+		return nullptr;
 	ThrowIfFailed(gLoadLamdaTable[ext](wtexpath, &metadata, scratchImg));
 	auto img = scratchImg.GetImage(0, 0, 0);//生データ抽出
 	auto imgAlignSize = Utility::AlignmentedSize(img->rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);

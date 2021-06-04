@@ -26,9 +26,9 @@ int APIENTRY WinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE _hInst, _In_ LPSTR
 	//実行ファイルパスを相対パスの基点にする
 	Utility::SetBasePath();
 
-//#ifdef _DEBUG
+#ifdef _DEBUG
 	Utility::DisplayConsole(); //デバッグコンソール表示
-//#endif
+#endif
 	/*上は触らない*/
 
 	/*パラメータのみ触る*/

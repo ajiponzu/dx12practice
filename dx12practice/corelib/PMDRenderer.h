@@ -7,7 +7,7 @@
 //const std::string gModelPath = "assets/ddd.pmd";
 //const std::string gModelPath = "assets/eee.pmd";
 //const std::string gModelPath = "assets/fff.pmd";
-const std::string gModelPath = "assets/ggg.pmd";
+static const std::string gModelPath = "assets/Lat式ミクVer2.31_Normal.pmd";
 //const std::string gModelPath = "assets/hhh.pmd";
 //const std::string gModelPath = "assets/iii.pmd";
 //const std::string gModelPath = "assets/jjj.pmd";

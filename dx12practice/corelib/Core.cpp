@@ -131,9 +131,9 @@ void Core::Init(const int& wid, const int& high)
 	//ウィンドウ作成
 	sHwnd = MakeWindow(wid, high);
 
-//#ifdef _DEBUG
+#ifdef _DEBUG
 	Utility::EnableDebugLayer();
-//#endif
+#endif
 
 	MakeDxgiFactory();
 	MakeDxDevice();
