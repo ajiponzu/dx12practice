@@ -1,19 +1,19 @@
 #pragma once
 #include "Renderer.h"
 
-//const std::string gModelPath = "assets/初音ミク.pmd";
-const std::string gModelPath = "assets/巡音ルカ.pmd";
-//const std::string gModelPath = "assets/鏡音リン.pmd";
-//const std::string gModelPath = "assets/鏡音リン_act2.pmd";
-//const std::string gModelPath = "assets/鏡音レン.pmd";
-//const std::string gModelPath = "assets/弱音ハク.pmd";
-//const std::string gModelPath = "assets/咲音メイコ.pmd";
-//const std::string gModelPath = "assets/初音ミクmetal.pmd";
-//const std::string gModelPath = "assets/初音ミクVer2.pmd";
-//const std::string gModelPath = "assets/亞北ネル.pmd";
-//const std::string gModelPath = "assets/MEIKO.pmd";
-//const std::string gModelPath = "assets/カイト.pmd";
-//const std::string gModelPath = "assets/ダミーボーン.pmd";
+//const std::string gModelPath = "assets/aaa.pmd";
+//const std::string gModelPath = "assets/bbb.pmd";
+//const std::string gModelPath = "assets/ccc.pmd";
+//const std::string gModelPath = "assets/ddd.pmd";
+//const std::string gModelPath = "assets/eee.pmd";
+//const std::string gModelPath = "assets/fff.pmd";
+const std::string gModelPath = "assets/ggg.pmd";
+//const std::string gModelPath = "assets/hhh.pmd";
+//const std::string gModelPath = "assets/iii.pmd";
+//const std::string gModelPath = "assets/jjj.pmd";
+//const std::string gModelPath = "assets/kkk.pmd";
+//const std::string gModelPath = "assets/lll.pmd";
+//const std::string gModelPath = "assets/mmm.pmd";
 
 struct PMDHeader
 {
@@ -34,7 +34,6 @@ struct PMDVertex
 
 constexpr size_t mPMDVertexSize = 38;
 
-//マテリアル周り
 #pragma pack(1)
 struct PMDMaterial
 {

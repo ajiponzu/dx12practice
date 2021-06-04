@@ -24,5 +24,5 @@ public:
 	ComPtr<ID3D12PipelineState>& GetPipelineState();
 
 protected:
-	Scene(std::unique_ptr<Renderer>& renderer, UINT renderTargetsNum = 1);
+	Scene(std::unique_ptr<Renderer>&& renderer, UINT renderTargetsNum = 1);
 };

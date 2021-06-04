@@ -1,6 +1,7 @@
 #include "corelib/Core.h"
 #include "corelib/Renderer.h"
 #include "corelib/Utility.h"
+#include "corelib/PMDRenderer.h"
 
 #include "src/TestScene.h"
 
@@ -25,9 +26,9 @@ int APIENTRY WinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE _hInst, _In_ LPSTR
 	//実行ファイルパスを相対パスの基点にする
 	Utility::SetBasePath();
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
 	Utility::DisplayConsole(); //デバッグコンソール表示
-#endif
+//#endif
 	/*上は触らない*/
 
 	/*パラメータのみ触る*/
@@ -35,8 +36,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE _hInst, _In_ LPSTR
 	Core::MakeInstance(hInst, L"ゲーム", 1280, 720);
 	Core::SetWindow();
 
-	auto renderer = std::make_unique<Renderer>();
-	auto scene = std::make_unique<TestScene>(renderer, 1);
+	auto scene = std::make_unique<TestScene>();
 	Core::Run(std::move(scene));
 
 	/*end*/

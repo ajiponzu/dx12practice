@@ -1,9 +1,11 @@
 #include "TestScene.h"
-#include "../corelib/Renderer.h"
-#include "../corelib/Actor.h"
+#include "../corelib/PMDRenderer.h"
+#include "../corelib/PMDActor.h"
+//#include "../corelib/Actor.h"
 
-TestScene::TestScene(std::unique_ptr<Renderer>& renderer, UINT renderTargetsNum)
-	: Scene(renderer, renderTargetsNum)
+TestScene::TestScene(UINT renderTargetsNum)
+	: Scene(std::move(std::make_unique<PMDRenderer>()), renderTargetsNum)
 {
-	mActors.push_back(std::make_shared<Actor>());
+	//mActors.push_back(std::make_shared<Actor>());
+	mActors.push_back(std::make_shared<PMDActor>());
 }

@@ -62,13 +62,12 @@ void Renderer::LinkMatrixAndCBuffer(Scene& scene, Window& window)
 	for (auto& actor : actors)
 	{
 		MatrixData matrixData{};
-		//XMFLOAT3 eye(0.0f, 0.0f, -5.0f), target(0.0f, 0.0f, 0.0f), up(0.0f, 1.0f, 0.0f);
 		auto initCameraPos = actor->GetInitCameraPos();
 		matrixData.world = std::move(XMMatrixRotationY(XM_PI));
 		matrixData.view = std::move(XMMatrixLookAtLH(XMLoadFloat3(&initCameraPos.eye), XMLoadFloat3(&initCameraPos.target), XMLoadFloat3(&initCameraPos.up)));
 		matrixData.projection = std::move(XMMatrixPerspectiveFovLH(
 			XM_PIDIV4, static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight()),
-			1.0f, 10.0f
+			1.0f, 100.0f
 		));
 		matrixData.eye = std::move(initCameraPos.eye);
 		actor->SetMatrix(std::move(matrixData));
@@ -284,13 +283,15 @@ void Renderer::ConstructGraphicsPipeline(Scene& scene, Window& window)
 }
 
 /// <summary>
-/// パイプライン外でリソースをセット
+/// パイプライン外でリソースをセット, 場合によっては描画コマンドも積む
 /// </summary>
 void Renderer::SetAppGPUResources(Scene& scene, Window& window, ComPtr<ID3D12GraphicsCommandList>& commandList)
 {
 	commandList->SetGraphicsRootSignature(mRootSignature.Get()); //ルートシグネチャ(シェーダから扱えるレジスタが定義されたディスクリプタテーブル)をコマンドリストにセット
 	commandList->SetDescriptorHeaps(mTextureNum, mResourceDescHeap.GetAddressOf());
 	commandList->SetGraphicsRootDescriptorTable(0, mResourceDescHeap->GetGPUDescriptorHandleForHeapStart());
+	//描画
+	commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
 }
 
 /// <summary>
@@ -338,8 +339,6 @@ void Renderer::SetCommandsForGraphicsPipeline(Scene& scene, Window& window)
 {
 	auto& commandList = Core::GetInstance().GetCommandList();
 
-	//リソースをセット
-	SetAppGPUResources(scene, window, commandList);
 	//パイプラインステートをコマンドリストにセット
 	commandList->SetPipelineState(scene.GetPipelineState().Get());
 
@@ -347,6 +346,6 @@ void Renderer::SetCommandsForGraphicsPipeline(Scene& scene, Window& window)
 	SetCommandsOnIAStage(scene, window, commandList);
 	//ラスタライザステージ
 	SetCommandsOnRStage(scene, window, commandList);
-	//描画
-	commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
+	//リソースをセット，描画コマンドを積むこともあるので，最後に呼ぶ
+	SetAppGPUResources(scene, window, commandList);
 }

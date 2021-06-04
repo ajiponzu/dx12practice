@@ -107,7 +107,7 @@ void PMDRenderer::CreateAppResources(Scene& scene, Window& window,  std::vector<
 	mSphereAdderResources.resize(mPMDMaterials.size());
 	mToonResources.resize(mPMDMaterials.size());
 
-	ComPtr<ID3D12Resource> uploadbuff; //copytexureregionがexecuteされるまでライフタイムがあればよい
+	std::vector<ComPtr<ID3D12Resource>> uploadbuff(mPMDMaterials.size()); //copytexureregionがexecuteされるまでライフタイムがあればよい
 	std::vector<CD3DX12_TEXTURE_COPY_LOCATION[2]> locationses(mPMDMaterials.size());
 
 	//マテリアルリソース読み込みループ
@@ -120,7 +120,7 @@ void PMDRenderer::CreateAppResources(Scene& scene, Window& window,  std::vector<
 
 		try 
 		{
-			mToonResources[idx] = Texture::LoadTexture(uploadbuff, locationses[idx], toonFilePath);
+			mToonResources[idx] = Texture::LoadTexture(uploadbuff[idx], locationses[idx], toonFilePath);
 		}
 		catch (std::exception e)
 		{
@@ -151,7 +151,7 @@ void PMDRenderer::CreateAppResources(Scene& scene, Window& window,  std::vector<
 				auto tmp = Utility::GetTexturePathFromModelAndTexPath(
 					gModelPath, namePair.first.c_str()
 				);
-				mSphereAdderResources[idx] = Texture::LoadTexture(uploadbuff, locationses[idx], tmp);
+				mSphereAdderResources[idx] = Texture::LoadTexture(uploadbuff[idx], locationses[idx], tmp);
 			}
 			else if (firstNameExtension == "sph")
 			{
@@ -159,7 +159,7 @@ void PMDRenderer::CreateAppResources(Scene& scene, Window& window,  std::vector<
 				auto tmp = Utility::GetTexturePathFromModelAndTexPath(
 					gModelPath, namePair.first.c_str()
 				);
-				mSphereResources[idx] = Texture::LoadTexture(uploadbuff, locationses[idx], tmp);
+				mSphereResources[idx] = Texture::LoadTexture(uploadbuff[idx], locationses[idx], tmp);
 			}
 
 			if (secondNameExtension == "spa")
@@ -168,7 +168,7 @@ void PMDRenderer::CreateAppResources(Scene& scene, Window& window,  std::vector<
 				auto tmp = Utility::GetTexturePathFromModelAndTexPath(
 					gModelPath, namePair.second.c_str()
 				);
-				mSphereAdderResources[idx] = Texture::LoadTexture(uploadbuff, locationses[idx], tmp);
+				mSphereAdderResources[idx] = Texture::LoadTexture(uploadbuff[idx], locationses[idx], tmp);
 			}
 			else if (secondNameExtension == "sph")
 			{
@@ -176,34 +176,34 @@ void PMDRenderer::CreateAppResources(Scene& scene, Window& window,  std::vector<
 				auto tmp = Utility::GetTexturePathFromModelAndTexPath(
 					gModelPath, namePair.second.c_str()
 				);
-				mSphereResources[idx] = Texture::LoadTexture(uploadbuff, locationses[idx], tmp);
+				mSphereResources[idx] = Texture::LoadTexture(uploadbuff[idx], locationses[idx], tmp);
 			}
 
 			auto texFilePath = Utility::GetTexturePathFromModelAndTexPath(
 				gModelPath, texFileName.c_str()
 			);
-			mTexBuffers[idx] = Texture::LoadTexture(uploadbuff, locationses[idx], texFilePath);
+			mTexBuffers[idx] = Texture::LoadTexture(uploadbuff[idx], locationses[idx], texFilePath);
 		}
 		else if (Utility::GetExtension(texFileName) == "spa")
 		{
 			auto texFilePath = Utility::GetTexturePathFromModelAndTexPath(
 				gModelPath, texFileName.c_str()
 			);
-			mSphereAdderResources[idx] = Texture::LoadTexture(uploadbuff, locationses[idx], texFilePath);
+			mSphereAdderResources[idx] = Texture::LoadTexture(uploadbuff[idx], locationses[idx], texFilePath);
 		}
 		else if (Utility::GetExtension(texFileName) == "sph")
 		{
 			auto texFilePath = Utility::GetTexturePathFromModelAndTexPath(
 				gModelPath, texFileName.c_str()
 			);
-			mSphereResources[idx] = Texture::LoadTexture(uploadbuff, locationses[idx], texFilePath);
+			mSphereResources[idx] = Texture::LoadTexture(uploadbuff[idx], locationses[idx], texFilePath);
 		}
 		else
 		{
 			auto texFilePath = Utility::GetTexturePathFromModelAndTexPath(
 				gModelPath, texFileName.c_str()
 			);
-			mTexBuffers[idx] = Texture::LoadTexture(uploadbuff, locationses[idx], texFilePath);
+			mTexBuffers[idx] = Texture::LoadTexture(uploadbuff[idx], locationses[idx], texFilePath);
 		}
 	}
 	/*end*/
@@ -237,14 +237,16 @@ void PMDRenderer::CreateAppResources(Scene& scene, Window& window,  std::vector<
 		D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
 	);
 
+	std::vector<ComPtr<ID3D12Resource>> uploadbuff2(mPMDMaterials.size()); 
 	std::vector<CD3DX12_TEXTURE_COPY_LOCATION[2]> locationses2(3);
 	std::string path = "white";
-	auto whiteTex = Texture::LoadTexture(uploadbuff, locationses2[0], path);
+	auto whiteTex = Texture::LoadTexture(uploadbuff2[0], locationses2[0], path);
 	path = "black";
-	auto blackTex = Texture::LoadTexture(uploadbuff, locationses2[0], path);
+	auto blackTex = Texture::LoadTexture(uploadbuff2[1], locationses2[1], path);
 	path = "grad";
-	auto gradTex =  Texture::LoadTexture(uploadbuff, locationses2[0], path);
+	auto gradTex =  Texture::LoadTexture(uploadbuff2[2], locationses2[2], path);
 
+	UINT ptr_idx = 0;
 	for (int idx = 0; idx < mPMDMaterials.size(); idx++)
 	{
 		Core::GetInstance().GetDevice()->CreateConstantBufferView(&matCBVDesc, matDescHeapHandle);
@@ -261,7 +263,7 @@ void PMDRenderer::CreateAppResources(Scene& scene, Window& window,  std::vector<
 
 		matDescHeapHandle.ptr += incOffset;
 
-		if (mSphereResources[idx] == nullptr)
+		if (!mSphereResources[idx])
 			mSphereResources[idx] = whiteTex;
 
 		srvDesc.Format = mSphereResources[idx]->GetDesc().Format;
@@ -271,7 +273,7 @@ void PMDRenderer::CreateAppResources(Scene& scene, Window& window,  std::vector<
 
 		matDescHeapHandle.ptr += incOffset;
 
-		if (mSphereAdderResources[idx] == nullptr)
+		if (!mSphereAdderResources[idx])
 			mSphereAdderResources[idx] = blackTex;
 
 		srvDesc.Format = mSphereAdderResources[idx]->GetDesc().Format;
@@ -281,7 +283,7 @@ void PMDRenderer::CreateAppResources(Scene& scene, Window& window,  std::vector<
 
 		matDescHeapHandle.ptr += incOffset;
 
-		if (mToonResources[idx] == nullptr)
+		if (!mToonResources[idx])
 			mToonResources[idx] = gradTex;
 
 		srvDesc.Format = mToonResources[idx]->GetDesc().Format;
@@ -295,10 +297,11 @@ void PMDRenderer::CreateAppResources(Scene& scene, Window& window,  std::vector<
 	/*end*/
 
 	/*GPUへ送信*/
+	for (auto& texBuffer : mTexBuffers)
+		window.SetBarrier(CD3DX12_RESOURCE_BARRIER::Transition(
+			texBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
+		));
 
-	window.SetBarrier(CD3DX12_RESOURCE_BARRIER::Transition(
-		mTexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
-	));
 	window.UseBarrier();
 
 	auto& core = Core::GetInstance();
@@ -314,8 +317,8 @@ void PMDRenderer::CreateAppGraphicsPipelineState(Scene& scene, Window& window)
 	graphicsPipelineStateDesc.pRootSignature = nullptr;
 	//シェーダのコンパイルとアセンブリの登録
 	ComPtr<ID3DBlob> vsBlob, psBlob;
-	ThrowIfFailed(D3DReadFileToBlob(L"VertexShader.cso", &vsBlob));
-	ThrowIfFailed(D3DReadFileToBlob(L"PixelShader.cso", &psBlob));
+	ThrowIfFailed(D3DReadFileToBlob(L"MMDVertexShader.cso", &vsBlob));
+	ThrowIfFailed(D3DReadFileToBlob(L"MMDPixelShader.cso", &psBlob));
 	graphicsPipelineStateDesc.VS = CD3DX12_SHADER_BYTECODE(vsBlob.Get());
 	graphicsPipelineStateDesc.PS = CD3DX12_SHADER_BYTECODE(psBlob.Get());
 	//サンプルマスク

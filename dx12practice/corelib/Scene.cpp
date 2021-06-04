@@ -9,7 +9,7 @@ ComPtr<ID3D12PipelineState>& Scene::GetPipelineState()
 	return mPipelineState;
 }
 
-Scene::Scene(std::unique_ptr<Renderer>& renderer, UINT renderTargetsNum)
+Scene::Scene(std::unique_ptr<Renderer>&& renderer, UINT renderTargetsNum)
 	: mRenderTargetsNum(renderTargetsNum)
 {
 	mRenderer = std::move(renderer);
