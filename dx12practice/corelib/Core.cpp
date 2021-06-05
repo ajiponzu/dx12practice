@@ -100,7 +100,7 @@ void Core::Run()
 	Run(nullptr);
 }
 
-void Core::Run(std::unique_ptr<Scene> scene)
+void Core::Run(std::unique_ptr<Scene>&& scene)
 {
 	if (!g_pSingleton)
 		return;
@@ -109,7 +109,7 @@ void Core::Run(std::unique_ptr<Scene> scene)
 
 	if (!scene)
 		scene = std::make_unique<Scene>();
-	pWindow->SetScene(scene);
+	pWindow->SetScene(std::move(scene));
 
 	::ShowWindow(sHwnd, SW_SHOW);
 

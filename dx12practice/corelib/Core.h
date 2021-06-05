@@ -39,7 +39,7 @@ public:
 	static void SetWindow(const int& wid = 1280, const int& high = 720, UINT bufferCount = 2);
 	static Core& GetInstance();
 	static void Run();
-	static void Run(std::unique_ptr<Scene> scene);
+	static void Run(std::unique_ptr<Scene>&& scene);
 
 	void ExecuteAppCommandLists();
 	void ResetGPUCommand();

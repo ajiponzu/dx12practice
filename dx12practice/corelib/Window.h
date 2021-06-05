@@ -40,7 +40,7 @@ public:
 	void MakeGraphicsPipeline();
 	void ClearAppRenderTargetView(UINT renderTargetsNum);
 
-	void SetScene(std::unique_ptr<Scene>& scene) { mScene = std::move(scene); }
+	void SetScene(std::unique_ptr<Scene>&& scene) { mScene = std::move(scene); }
 	void SetBarrier(CD3DX12_RESOURCE_BARRIER&& barrier) { mBarrier = barrier; }
 
 	const UINT& GetWidth() const { return mWidth; }
