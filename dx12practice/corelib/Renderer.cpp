@@ -179,7 +179,7 @@ void Renderer::CreateAppGraphicsPipelineState(Scene& scene, Window& window)
 	//レンダーターゲットの設定
 	graphicsPipelineStateDesc.NumRenderTargets = scene.GetRenderTargetsNum();
 	for (UINT idx = 0; idx < graphicsPipelineStateDesc.NumRenderTargets; idx++)
-		graphicsPipelineStateDesc.RTVFormats[idx] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		graphicsPipelineStateDesc.RTVFormats[idx] = DXGI_FORMAT_R8G8B8A8_UNORM;
 	//サンプリング
 	graphicsPipelineStateDesc.SampleDesc.Count = 1;
 	graphicsPipelineStateDesc.SampleDesc.Quality = 0;

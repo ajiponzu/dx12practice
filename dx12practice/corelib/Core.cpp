@@ -47,6 +47,10 @@ static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
 		case WM_DESTROY:
 			gWindows.erase(hwnd);
 			::DestroyWindow(hwnd);
+			//終了時，タイミングが悪いとGPU上に未処理の命令が残ることがある
+			//強引に掃除すると危ないので，実行してから片づける
+			g_pSingleton->ExecuteAppCommandLists();
+			g_pSingleton->ResetGPUCommand();
 			if (gWindows.empty())
 				PostQuitMessage(0);
 			break;
