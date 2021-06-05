@@ -70,7 +70,7 @@ void Renderer::LinkMatrixAndCBuffer(Scene& scene, Window& window)
 			1.0f, 10.0f
 		));
 		matrixData.eye = std::move(initCameraPos.eye);
-		actor->SetMatrix(std::move(matrixData));
+		actor->SetMatrix(matrixData);
 
 		auto pTempHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 		auto pTempResourceDesc = CD3DX12_RESOURCE_DESC::Buffer((sizeof(XMMATRIX) + 0xff) & ~0xff); //アラインメント

@@ -30,8 +30,8 @@ public:
 	virtual void Update(Scene& scene);
 	virtual void Render(Scene& scene);
 	virtual void LoadContents(Scene& scene);
-	virtual InitCameraPos&& GetInitCameraPos();
+	virtual InitCameraPos GetInitCameraPos();
 
-	void SetMatrix(MatrixData&& matrixData) { mMatrix = matrixData; }
+	void SetMatrix(MatrixData& matrixData) { mMatrix = matrixData; }
 	MatrixData* const* GetPMapMatrix() const { return &m_pMapMatrix; }
 };

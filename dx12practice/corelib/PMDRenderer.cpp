@@ -51,7 +51,7 @@ void PMDRenderer::CreateAppRootSignature(Scene& scene, Window& window, std::vect
 	samplerDescs[1].ShaderRegister = 1;
 
 	auto rootSignatureDesc = CD3DX12_ROOT_SIGNATURE_DESC(
-		static_cast<UINT>(rootParams.size()), rootParams.data(), samplerDescs.size(), samplerDescs.data(), D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
+		static_cast<UINT>(rootParams.size()), rootParams.data(), static_cast<UINT>(samplerDescs.size()), samplerDescs.data(), D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
 	);
 	ComPtr<ID3DBlob> rootSignatureBlob;
 	ComPtr<ID3DBlob> errorBlob;

@@ -1,8 +1,5 @@
 #include "corelib/Core.h"
-#include "corelib/Renderer.h"
 #include "corelib/Utility.h"
-#include "corelib/PMDRenderer.h"
-
 #include "src/TestScene.h"
 
 /// <summary>

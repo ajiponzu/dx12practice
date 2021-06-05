@@ -73,26 +73,26 @@ ComPtr<ID3D12Resource> Texture::LoadTextureFromFile(ComPtr<ID3D12Resource>& uplo
 
 ComPtr<ID3D12Resource> Texture::CreateWhiteTexture(ComPtr<ID3D12Resource>& uploadbuff, CD3DX12_TEXTURE_COPY_LOCATION locations[2])
 {
-	size_t dataWid = 4, dataHigh = 4, dataSizeInByte = 4, rowPitch = dataWid * dataSizeInByte;
+	UINT dataWid = 4, dataHigh = 4, dataSizeInByte = 4, rowPitch = dataWid * dataSizeInByte;
 	std::vector<uint8_t> texData(dataWid * dataHigh * dataSizeInByte);
 	std::fill(texData.begin(), texData.end(), 0xff);
 
-	size_t params[4] = { dataWid, dataHigh, dataSizeInByte, rowPitch };
+	UINT params[4] = { dataWid, dataHigh, dataSizeInByte, rowPitch };
 	return CreateTexture(uploadbuff, texData, locations, params);
 }
 
 ComPtr<ID3D12Resource> Texture::CreateBlackTexture(ComPtr<ID3D12Resource>& uploadbuff, CD3DX12_TEXTURE_COPY_LOCATION locations[2])
 {
-	size_t dataWid = 4, dataHigh = 4, dataSizeInByte = 4, rowPitch = dataWid * dataSizeInByte;
+	UINT dataWid = 4, dataHigh = 4, dataSizeInByte = 4, rowPitch = dataWid * dataSizeInByte;
 	std::vector<uint8_t> texData(dataWid * dataHigh * dataSizeInByte);
 
-	size_t params[4] = { dataWid, dataHigh, dataSizeInByte, rowPitch };
+	UINT params[4] = { dataWid, dataHigh, dataSizeInByte, rowPitch };
 	return CreateTexture(uploadbuff, texData, locations, params);
 }
 
 ComPtr<ID3D12Resource> Texture::CreateGradationTexture(ComPtr<ID3D12Resource>& uploadbuff, CD3DX12_TEXTURE_COPY_LOCATION locations[2])
 {
-	size_t dataWid = 4, dataHigh = 64, dataSizeInByte = 4, rowPitch = dataWid * dataSizeInByte;
+	UINT dataWid = 4, dataHigh = 64, dataSizeInByte = 4, rowPitch = dataWid * dataSizeInByte;
 	std::vector<uint8_t> texData(dataWid * dataHigh * dataSizeInByte);
 	uint32_t c = 0xff;
 	for (auto itr = texData.begin(); itr != texData.end(); itr += dataWid, c--)
@@ -101,11 +101,11 @@ ComPtr<ID3D12Resource> Texture::CreateGradationTexture(ComPtr<ID3D12Resource>& u
 		std::fill(itr, itr + dataWid, col);
 	}
 
-	size_t params[4] = { dataWid, dataHigh, dataSizeInByte, rowPitch };
+	UINT params[4] = { dataWid, dataHigh, dataSizeInByte, rowPitch };
 	return CreateTexture(uploadbuff, texData, locations, params);
 }
 
-ComPtr<ID3D12Resource> Texture::CreateTexture(ComPtr<ID3D12Resource>& uploadbuff, std::vector<uint8_t>& texData, CD3DX12_TEXTURE_COPY_LOCATION locations[2], size_t params[4])
+ComPtr<ID3D12Resource> Texture::CreateTexture(ComPtr<ID3D12Resource>& uploadbuff, std::vector<uint8_t>& texData, CD3DX12_TEXTURE_COPY_LOCATION locations[2], UINT params[4])
 {
 	auto& dataWid = params[0], dataHigh = params[1], dataSizeInByte = params[2], rowPitch = params[3];
 	auto& device = Core::GetInstance().GetDevice();
