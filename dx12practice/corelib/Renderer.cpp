@@ -84,12 +84,12 @@ void Renderer::LinkMatrixAndCBuffer(Actor& actor, Scene& scene, Window& window)
 /// <summary>
 /// パイプライン外リソースの作成・送信
 /// </summary>
-void Renderer::CreateAppResources(Scene& scene, Window& window, std::vector<std::vector<CD3DX12_DESCRIPTOR_RANGE>>& descTblRanges)
+void Renderer::CreateAppResources(Actor& actor, Scene& scene, Window& window, std::vector<std::vector<CD3DX12_DESCRIPTOR_RANGE>>& descTblRanges)
 {
 	ComPtr<ID3D12Resource> uploadbuff; //copytexureregionがexecuteされるまでライフタイムがあればよい
 	CD3DX12_TEXTURE_COPY_LOCATION locations[2];
-	for (auto& texpath : Texture::GetResourceRegistory())
-		mTexBuffer = Texture::LoadTexture(uploadbuff, locations, texpath);
+	for (auto& resPath : actor.GetResourceList())
+		mTexBuffer = Texture::LoadTexture(uploadbuff, locations, resPath);
 
 	/*リソース作成の仕上げ*/
 
@@ -324,7 +324,7 @@ void Renderer::LoadContents(Actor& actor, Scene& scene, Window& window)
 	//actor行列の登録
 	LinkMatrixAndCBuffer(actor, scene, window);
 	//外部リソース読み込み・登録
-	CreateAppResources(scene, window, descTblRanges);
+	CreateAppResources(actor, scene, window, descTblRanges);
 	//グラフィクスパイプラインの構築
 	ConstructGraphicsPipeline(scene, window);
 }

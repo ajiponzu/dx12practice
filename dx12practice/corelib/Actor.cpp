@@ -21,7 +21,7 @@ void Actor::Render(Scene& scene, Window& window)
 
 void Actor::LoadContents(Scene& scene, Window& window)
 {
-	Texture::RegistResource("textest.png");
+	mResourceList.push_back("textest.png");
 	mRenderer->LoadContents(*this, scene, window);
 }
 

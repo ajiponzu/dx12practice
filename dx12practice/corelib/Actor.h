@@ -22,8 +22,6 @@ class Renderer;
 class Actor
 {
 protected:
-	friend class Renderer;
-
 	std::shared_ptr<Renderer> mRenderer;
 
 	float mAngle = 0.0f;
@@ -31,17 +29,20 @@ protected:
 	MatrixData mMatrix{};
 	MatrixData* m_pMapMatrix = nullptr;
 
+	std::vector<std::string> mResourceList;
+
 public:
-	Actor(float angle = 0.0f)
+	Actor(const float& angle = 0.0f)
 		: mAngle(angle)
-	{
-	}
+	{}
 
 	virtual void Update(Scene& scene, Window& window);
 	virtual void Render(Scene& scene, Window& window);
 	virtual void LoadContents(Scene& scene, Window& window);
 	virtual void SetInitCameraPos();
 	virtual void Init();
+
+	std::vector<std::string>& GetResourceList() { return mResourceList; }
 
 	InitCameraPos& GetInitCameraPos() { return mInitCameraPos; }
 	void SetMatrix(MatrixData& matrixData) { mMatrix = matrixData; mMatrix.eye = mInitCameraPos.eye; }

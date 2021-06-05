@@ -225,13 +225,3 @@ void Texture::MakeLoadLamdaTable()
 		return LoadFromDDSFile(path.c_str(), DDS_FLAGS_NONE, meta, img);
 	};
 }
-
-void Texture::RegistResource(std::string texPath)
-{
-	gResourceRegistory.insert(texPath);
-}
-
-std::set<std::string>& Texture::GetResourceRegistory()
-{
-	return gResourceRegistory;
-}
