@@ -6,12 +6,11 @@
 //const std::string gModelPath = "assets/鏡音リン_act2.pmd";
 //const std::string gModelPath = "assets/鏡音レン.pmd";
 //const std::string gModelPath = "assets/弱音ハク.pmd";
-//const std::string gModelPath = "assets/咲音メイコ.pmd";
-const std::string gModelPath = "assets/初音ミクVer2.pmd";
+const std::string gModelPath = "assets/咲音メイコ.pmd";
+//const std::string gModelPath = "assets/初音ミクVer2.pmd";
 //const std::string gModelPath = "assets/亞北ネル.pmd";
 //const std::string gModelPath = "assets/MEIKO.pmd";
 //const std::string gModelPath = "assets/カイト.pmd";
-//const std::string gModelPath = "assets/ダミーボーン.pmd";
 
 struct PMDHeader
 {
@@ -100,12 +99,12 @@ public:
 		: Renderer(textureNum, constantBufferNum) {}
 
 protected:
-	virtual void CreateAppRootSignature(Scene& scene, Window& window, std::vector<std::vector<CD3DX12_DESCRIPTOR_RANGE>>& descTblRanges) override;
-	virtual void CreateAppResources(Scene& scene, Window& window, std::vector<std::vector<CD3DX12_DESCRIPTOR_RANGE>>& descTblRanges) override;
-	virtual void CreateAppGraphicsPipelineState(Scene& scene, Window& window) override;
-	virtual void CreateInputAssembly(Scene& scene, Window& window) override;
+	//virtual void CreateAppRootSignature(Scene& scene, Window& window, std::vector<std::vector<CD3DX12_DESCRIPTOR_RANGE>>& descTblRanges) override;
+	//virtual void CreateAppResources(Scene& scene, Window& window, std::vector<std::vector<CD3DX12_DESCRIPTOR_RANGE>>& descTblRanges) override;
+	//virtual void CreateAppGraphicsPipelineState(Scene& scene, Window& window) override;
+	//virtual void CreateInputAssembly(Scene& scene, Window& window) override;
 
-	virtual void SetAppGPUResources(Scene& scene, Window& window, ComPtr<ID3D12GraphicsCommandList>& commandList) override;
+	//virtual void SetAppGPUResources(Scene& scene, Window& window, ComPtr<ID3D12GraphicsCommandList>& commandList) override;
 
-	virtual void LoadMMD(Scene& scene, Window& window);
+	//virtual void LoadMMD(Scene& scene, Window& window);
 };

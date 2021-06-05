@@ -2,6 +2,7 @@
 
 class Window;
 class Scene;
+class Actor;
 
 class Renderer
 {
@@ -31,12 +32,12 @@ public:
 
 	virtual ~Renderer() { mConstantBuffer->Unmap(0, nullptr); }
 
-	virtual void LoadContents(Scene& scene, Window& window);
+	virtual void LoadContents(Actor& actor, Scene& scene, Window& window);
 	virtual void SetCommandsForGraphicsPipeline(Scene& scene, Window& window);
 
 protected:
 	virtual void CreateAppRootSignature(Scene& scene, Window& window, std::vector<std::vector<CD3DX12_DESCRIPTOR_RANGE>>& descTblRanges);
-	virtual void LinkMatrixAndCBuffer(Scene& scene, Window& window);
+	virtual void LinkMatrixAndCBuffer(Actor& actor, Scene& scene, Window& window);
 	virtual void CreateAppResources(Scene& scene, Window& window, std::vector<std::vector<CD3DX12_DESCRIPTOR_RANGE>>& descTblRanges);
 	virtual void CreateAppGraphicsPipelineState(Scene& scene, Window& window);
 	virtual void CreateInputAssembly(Scene& scene, Window& window);

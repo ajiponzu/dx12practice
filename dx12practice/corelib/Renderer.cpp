@@ -32,7 +32,8 @@ void Renderer::CreateAppRootSignature(Scene& scene, Window& window, std::vector<
 	samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 	samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
 	samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-	samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+	//samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+	samplerDesc.MaxLOD = 255;
 	samplerDesc.MinLOD = 0.0f;
 	samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
 	samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
@@ -56,32 +57,28 @@ void Renderer::CreateAppRootSignature(Scene& scene, Window& window, std::vector<
 /// </summary>
 /// <param name="scene"></param>
 /// <param name="window"></param>
-void Renderer::LinkMatrixAndCBuffer(Scene& scene, Window& window)
+void Renderer::LinkMatrixAndCBuffer(Actor& actor, Scene& scene, Window& window)
 {
-	auto& actors = scene.GetActors();
-	for (auto& actor : actors)
-	{
-		MatrixData matrixData{};
-		auto initCameraPos = actor->GetInitCameraPos();
-		matrixData.world = std::move(XMMatrixRotationY(XM_PI));
-		matrixData.view = std::move(XMMatrixLookAtLH(XMLoadFloat3(&initCameraPos.eye), XMLoadFloat3(&initCameraPos.target), XMLoadFloat3(&initCameraPos.up)));
-		matrixData.projection = std::move(XMMatrixPerspectiveFovLH(
-			XM_PIDIV4, static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight()),
-			1.0f, 100.0f
-		));
-		matrixData.eye = std::move(initCameraPos.eye);
-		actor->SetMatrix(matrixData);
+	auto pTempHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+	auto pTempResourceDesc = CD3DX12_RESOURCE_DESC::Buffer((sizeof(XMMATRIX) + 0xff) & ~0xff); //アラインメント
+	ThrowIfFailed(Core::GetInstance().GetDevice()->CreateCommittedResource(
+		&pTempHeapProps, D3D12_HEAP_FLAG_NONE, &pTempResourceDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&mConstantBuffer)
+	));
 
-		auto pTempHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
-		auto pTempResourceDesc = CD3DX12_RESOURCE_DESC::Buffer((sizeof(XMMATRIX) + 0xff) & ~0xff); //アラインメント
-		ThrowIfFailed(Core::GetInstance().GetDevice()->CreateCommittedResource(
-			&pTempHeapProps, D3D12_HEAP_FLAG_NONE, &pTempResourceDesc,
-			D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&mConstantBuffer)
-		));
+	//ループ内で変換させる場合はマップしたままにしておく
+	ThrowIfFailed(mConstantBuffer->Map(0, nullptr, (void**)actor.GetPMapMatrix()));
 
-		ThrowIfFailed(mConstantBuffer->Map(0, nullptr, (void**)actor->GetPMapMatrix()));
-		//ループ内で変換させる場合はマップしたままにしておく
-	}
+	MatrixData matrixData{};
+	auto& initCameraPos = actor.GetInitCameraPos();
+	matrixData.world = std::move(XMMatrixRotationY(XM_PI));
+	matrixData.view = std::move(XMMatrixLookAtLH(XMLoadFloat3(&initCameraPos.eye), XMLoadFloat3(&initCameraPos.target), XMLoadFloat3(&initCameraPos.up)));
+	matrixData.projection = std::move(XMMatrixPerspectiveFovLH(
+		XM_PIDIV4, static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight()),
+		1.0f, 100.0f
+	));
+	actor.SetMatrix(matrixData);
+	actor.SendMatrixDataToMap(matrixData);
 }
 
 /// <summary>
@@ -93,8 +90,6 @@ void Renderer::CreateAppResources(Scene& scene, Window& window, std::vector<std:
 	CD3DX12_TEXTURE_COPY_LOCATION locations[2];
 	for (auto& texpath : Texture::GetResourceRegistory())
 		mTexBuffer = Texture::LoadTexture(uploadbuff, locations, texpath);
-
-	LinkMatrixAndCBuffer(scene, window);
 
 	/*リソース作成の仕上げ*/
 
@@ -321,11 +316,13 @@ void Renderer::SetCommandsOnRStage(Scene& scene, Window& window, ComPtr<ID3D12Gr
 /// </summary>
 /// <param name="scene"></param>
 /// <param name="window"></param>
-void Renderer::LoadContents(Scene& scene, Window& window)
+void Renderer::LoadContents(Actor& actor, Scene& scene, Window& window)
 {
 	std::vector<std::vector<CD3DX12_DESCRIPTOR_RANGE>> descTblRanges{};
 	//ルートシグネチャの作成
 	CreateAppRootSignature(scene, window, descTblRanges);
+	//actor行列の登録
+	LinkMatrixAndCBuffer(actor, scene, window);
 	//外部リソース読み込み・登録
 	CreateAppResources(scene, window, descTblRanges);
 	//グラフィクスパイプラインの構築

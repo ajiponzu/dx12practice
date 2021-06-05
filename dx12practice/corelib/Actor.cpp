@@ -1,30 +1,38 @@
 #include "Actor.h"
 #include "Texture.h"
 #include "Utility.h"
+#include "Renderer.h"
 
-void Actor::Update(Scene& scene)
+void Actor::Update(Scene& scene, Window& window)
 {
 	mAngle += 0.06f;
 	mMatrix.world = XMMatrixRotationY(mAngle);
 	
 	//マッピングしているのはMatrixData型のメモリ領域
 	// 節約のためにメンバだけコピーしても反映されない
-	*m_pMapMatrix = mMatrix;						
+	SendMatrixDataToMap();
 }
 
-void Actor::Render(Scene& scene)
+void Actor::Render(Scene& scene, Window& window)
 {
+	if (mRenderer)
+		mRenderer->SetCommandsForGraphicsPipeline(scene, window);
 }
 
-void Actor::LoadContents(Scene& scene)
+void Actor::LoadContents(Scene& scene, Window& window)
 {
 	Texture::RegistResource("textest.png");
-	//Texture::RegistResource("white");
+	mRenderer->LoadContents(*this, scene, window);
 }
 
-InitCameraPos Actor::GetInitCameraPos()
+void Actor::SetInitCameraPos()
 {
 	XMFLOAT3 eye(0.0f, 0.0f, -5.0f), target(0.0f, 0.0f, 0.0f), up(0.0f, 1.0f, 0.0f);
-	InitCameraPos initCameraPos{eye, target, up};
-	return initCameraPos;
+	mInitCameraPos = InitCameraPos{ eye, target, up };
+}
+
+void Actor::Init()
+{
+	SetInitCameraPos();
+	mRenderer = std::make_shared<Renderer>();
 }

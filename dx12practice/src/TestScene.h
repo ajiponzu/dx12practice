@@ -8,5 +8,5 @@ class TestScene : public Scene
 protected:
 
 public:
-	TestScene(UINT renderTargetsNum = 1U);
+	TestScene(const UINT& renderTargetsNum = 1U);
 };
