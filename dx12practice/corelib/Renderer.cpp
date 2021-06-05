@@ -67,7 +67,7 @@ void Renderer::LinkMatrixAndCBuffer(Scene& scene, Window& window)
 		matrixData.view = std::move(XMMatrixLookAtLH(XMLoadFloat3(&initCameraPos.eye), XMLoadFloat3(&initCameraPos.target), XMLoadFloat3(&initCameraPos.up)));
 		matrixData.projection = std::move(XMMatrixPerspectiveFovLH(
 			XM_PIDIV4, static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight()),
-			1.0f, 10.0f
+			1.0f, 100.0f
 		));
 		matrixData.eye = std::move(initCameraPos.eye);
 		actor->SetMatrix(matrixData);
@@ -179,7 +179,7 @@ void Renderer::CreateAppGraphicsPipelineState(Scene& scene, Window& window)
 	//レンダーターゲットの設定
 	graphicsPipelineStateDesc.NumRenderTargets = scene.GetRenderTargetsNum();
 	for (UINT idx = 0; idx < graphicsPipelineStateDesc.NumRenderTargets; idx++)
-		graphicsPipelineStateDesc.RTVFormats[idx] = DXGI_FORMAT_R8G8B8A8_UNORM;
+		graphicsPipelineStateDesc.RTVFormats[idx] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 	//サンプリング
 	graphicsPipelineStateDesc.SampleDesc.Count = 1;
 	graphicsPipelineStateDesc.SampleDesc.Quality = 0;

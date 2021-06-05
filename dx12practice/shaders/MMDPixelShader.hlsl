@@ -8,6 +8,13 @@ Texture2D<float4> toon : register(t3);
 SamplerState smp : register(s0);
 SamplerState smpToon : register(s1);
 
+cbuffer SceneData : register(b0) {
+	matrix world;//ワールド変換行列
+	matrix view;
+	matrix proj;//ビュープロジェクション行列
+	float3 eye;
+};
+
 cbuffer Material : register(b1)
 {
     float4 diffuse;
@@ -15,27 +22,33 @@ cbuffer Material : register(b1)
     float3 ambient;
 };
 
-float4 main(Information inf) : SV_TARGET
+float4 main(Information input) : SV_TARGET
 {
-	float3 light = normalize(float3(1., -1., 1.));
-	float3 lightColor = float3(1., 1., 1.);
 
-	float diffuseB = saturate(dot(-light, inf.normal.xyz));
-	float4 toonDif =  toon.Sample(smpToon, float2(0., 1. - diffuseB));
-
-	float3 refLight= normalize(reflect(light, inf.normal.xyz));
-	float specularB = pow(saturate(dot(refLight, -inf.ray)),specular.a);
 	
-	float2 sphereMapUV = inf.vnormal.xy;
-	sphereMapUV = (sphereMapUV + float2(1., -1.)) * float2(.5, -.5);
+	
+		float3 light = normalize(float3(1,-1,1));//光の向かうベクトル(平行光線)
+	float3 lightColor = float3(1,1,1);//ライトのカラー(1,1,1で真っ白)
 
-	float4 texColor = tex.Sample(smp, inf.uv);
+	//ディフューズ計算
+	float diffuseB = saturate(dot(-light, input.normal));
+	float4 toonDif =  toon.Sample(smpToon, float2(0, 1.0 - diffuseB));
 
-	return max(saturate(toonDif
-		* diffuse
-		*texColor
-		*sph.Sample(smp, sphereMapUV))
-		+ saturate(spa.Sample(smp, sphereMapUV)*texColor
-		+ float4(specularB *specular.rgb, 1.))
-		, float4(texColor.rgb * ambient,1.));
+	//光の反射ベクトル
+	float3 refLight= normalize(reflect(light, input.normal.xyz));
+	float specularB = pow(saturate(dot(refLight, -input.ray)),specular.a);
+	
+	//スフィアマップ用UV
+	float2 sphereMapUV = input.vnormal.xy;
+	sphereMapUV = (sphereMapUV + float2(1, -1)) * float2(0.5, -0.5);
+
+	float4 texColor = tex.Sample(smp, input.uv); //テクスチャカラー
+
+	return max(saturate(toonDif//輝度(トゥーン)
+		* diffuse//ディフューズ色
+		*texColor//テクスチャカラー
+		*sph.Sample(smp, sphereMapUV))//スフィアマップ(乗算)
+		+ saturate(spa.Sample(smp, sphereMapUV)*texColor//スフィアマップ(加算)
+		+ float4(specularB *specular.rgb, 1))//スペキュラー
+		, texColor * float4(ambient,1));//アンビエント
 }

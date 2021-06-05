@@ -115,8 +115,11 @@ void PMDRenderer::CreateAppResources(Scene& scene, Window& window,  std::vector<
 	{
 		std::string toonFilePath = "toon/";
 		char toonFileName[16]{};
-		sprintf_s(toonFileName, "toon%02d.bmp", mPMDMaterials[idx].toonIdx + 1);
+		sprintf_s(toonFileName, "toon%02d.bmp", (mPMDMaterials[idx].toonIdx + 1) % 11);
 		toonFilePath += toonFileName;
+#ifdef _DEBUG
+		std::cout << std::endl << toonFilePath << ": ";
+#endif
 
 		try 
 		{
@@ -137,6 +140,9 @@ void PMDRenderer::CreateAppResources(Scene& scene, Window& window,  std::vector<
 		}
 
 		auto namePair = std::make_pair(texFileName, texFileName);
+#ifdef _DEBUG
+		std::cout << namePair.first << ", " << namePair.second;
+#endif
 		std::string firstNameExtension = Utility::GetExtension(texFileName),
 			secondNameExtension = Utility::GetExtension(texFileName);
 		if (std::count(texFileName.begin(), texFileName.end(), '*') > 0)
