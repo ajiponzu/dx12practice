@@ -38,12 +38,12 @@ public:
 
 	virtual void Update(Scene& scene, Window& window);
 	virtual void Render(Scene& scene, Window& window);
-	virtual void LoadContents(Scene& scene, Window& window);
 	virtual void SetInitCameraPos();
-	virtual void Init();
+	virtual void LoadContents();
+
+	void LoadContents(Scene& scene, Window& window);
 
 	std::vector<std::string>& GetResourceList() { return mResourceList; }
-
 	InitCameraPos& GetInitCameraPos() { return mInitCameraPos; }
 	void SetMatrix(MatrixData& matrixData) { mMatrix = matrixData; mMatrix.eye = mInitCameraPos.eye; }
 	MatrixData* const* GetPMapMatrix() const { return &m_pMapMatrix; }

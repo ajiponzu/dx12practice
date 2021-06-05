@@ -5,8 +5,8 @@ class PMDActor
 	: public Actor
 {
 public:
-	PMDActor(float angle = 0.0f) : Actor(angle) {}
+	PMDActor(const float& angle = 0.0f) : Actor(angle) {}
 
-	//virtual void LoadContents(Scene& scene);
-	//virtual InitCameraPos GetInitCameraPos() override;
+	virtual void LoadContents() override;
+	virtual void SetInitCameraPos() override;
 };

@@ -95,16 +95,18 @@ protected:
 	std::vector<ComPtr<ID3D12Resource>> mToonResources;
 
 public:
-	PMDRenderer(UINT textureNum = 1U, UINT constantBufferNum = 1U)
+	PMDRenderer(const UINT& textureNum = 1U, const UINT& constantBufferNum = 1U)
 		: Renderer(textureNum, constantBufferNum) {}
 
 protected:
-	//virtual void CreateAppRootSignature(Scene& scene, Window& window, std::vector<std::vector<CD3DX12_DESCRIPTOR_RANGE>>& descTblRanges) override;
-	//virtual void CreateAppResources(Scene& scene, Window& window, std::vector<std::vector<CD3DX12_DESCRIPTOR_RANGE>>& descTblRanges) override;
-	//virtual void CreateAppGraphicsPipelineState(Scene& scene, Window& window) override;
-	//virtual void CreateInputAssembly(Scene& scene, Window& window) override;
+	virtual void CreateAppRootSignature(Scene& scene, Window& window, std::vector<std::vector<CD3DX12_DESCRIPTOR_RANGE>>& descTblRanges) override;
+	virtual void CreateAppResources(Actor& actor, Scene& scene, Window& window, std::vector<std::vector<CD3DX12_DESCRIPTOR_RANGE>>& descTblRanges) override;
+	virtual void CreateAppGraphicsPipelineState(Scene& scene, Window& window) override;
+	virtual void CreateInputAssembly(Scene& scene, Window& window) override;
 
-	//virtual void SetAppGPUResources(Scene& scene, Window& window, ComPtr<ID3D12GraphicsCommandList>& commandList) override;
+	virtual void LoadContents(Actor& actor, Scene& scene, Window& window) override;
 
-	//virtual void LoadMMD(Scene& scene, Window& window);
+	virtual void SetAppGPUResources(Scene& scene, Window& window, ComPtr<ID3D12GraphicsCommandList>& commandList) override;
+
+	virtual void LoadMMD(Scene& scene, Window& window);
 };

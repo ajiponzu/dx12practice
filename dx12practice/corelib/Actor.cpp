@@ -21,7 +21,7 @@ void Actor::Render(Scene& scene, Window& window)
 
 void Actor::LoadContents(Scene& scene, Window& window)
 {
-	mResourceList.push_back("textest.png");
+	LoadContents();
 	mRenderer->LoadContents(*this, scene, window);
 }
 
@@ -31,8 +31,9 @@ void Actor::SetInitCameraPos()
 	mInitCameraPos = InitCameraPos{ eye, target, up };
 }
 
-void Actor::Init()
+void Actor::LoadContents()
 {
 	SetInitCameraPos();
+	mResourceList.push_back("textest.png");
 	mRenderer = std::make_shared<Renderer>();
 }

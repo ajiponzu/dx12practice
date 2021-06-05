@@ -26,8 +26,5 @@ void Scene::Render(Window& window)
 void Scene::LoadContents(Window& window)
 {
 	for (auto& actor : mActors)
-	{
-		actor->Init();
 		actor->LoadContents(*this, window);
-	}
 }
