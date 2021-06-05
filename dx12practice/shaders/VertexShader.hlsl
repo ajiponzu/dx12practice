@@ -14,9 +14,9 @@ cbuffer cbuff0 : register(b0)
   float3 eye;
 };
 
-Infomation main(Input input)
+Inform main(Input input)
 {
-  Infomation inf;
+  Inform inf;
   inf.pos = mul(mul(proj, mul(view, world)), input.pos);
   inf.uv = input.uv;
 	return inf;

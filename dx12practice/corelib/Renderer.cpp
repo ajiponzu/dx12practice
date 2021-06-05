@@ -22,7 +22,7 @@ void Renderer::CreateAppRootSignature(Scene& scene, Window& window, std::vector<
 
 	D3D12_ROOT_PARAMETER rootParam{};
 	rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParam.DescriptorTable.pDescriptorRanges = &descTblRanges[0][0];
+	rootParam.DescriptorTable.pDescriptorRanges = descTblRanges[0].data();
 	rootParam.DescriptorTable.NumDescriptorRanges = static_cast<UINT>(descTblRanges[0].size());
 	rootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
@@ -67,7 +67,7 @@ void Renderer::LinkMatrixAndCBuffer(Scene& scene, Window& window)
 		matrixData.view = std::move(XMMatrixLookAtLH(XMLoadFloat3(&initCameraPos.eye), XMLoadFloat3(&initCameraPos.target), XMLoadFloat3(&initCameraPos.up)));
 		matrixData.projection = std::move(XMMatrixPerspectiveFovLH(
 			XM_PIDIV4, static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight()),
-			1.0f, 100.0f
+			1.0f, 10.0f
 		));
 		matrixData.eye = std::move(initCameraPos.eye);
 		actor->SetMatrix(std::move(matrixData));
@@ -341,7 +341,6 @@ void Renderer::SetCommandsForGraphicsPipeline(Scene& scene, Window& window)
 
 	//パイプラインステートをコマンドリストにセット
 	commandList->SetPipelineState(scene.GetPipelineState().Get());
-
 	//インプットアセンブラステージ
 	SetCommandsOnIAStage(scene, window, commandList);
 	//ラスタライザステージ

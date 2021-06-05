@@ -15,7 +15,7 @@ cbuffer Material : register(b1)
     float3 ambient;
 };
 
-float4 main(Infomation inf) : SV_TARGET
+float4 main(Information inf) : SV_TARGET
 {
 	float3 light = normalize(float3(1., -1., 1.));
 	float3 lightColor = float3(1., 1., 1.);

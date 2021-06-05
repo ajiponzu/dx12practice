@@ -10,13 +10,13 @@ float3 SetCircle(in float3 color, in float radius, in float2 st)
   return color * smoothstep(radius + .1, radius, pct);
 }
 
-float4 CircleTutorial(in Infomation inf)
+float4 CircleTutorial(in Inform inf)
 {
   float3 color = float3(.93, .54, .54);
   return float4(SetCircle(color, .3, inf.uv), 1.);
 }
 
-float4 main(Infomation inf) : SV_TARGET
+float4 main(Inform inf) : SV_TARGET
 {
   float4 output = tex.Sample(smp, inf.uv);
   output.rgb = lerp(output.rgb, SetCircle(float3(1., 1., 1.), .5, inf.uv), float3(inf.uv, 0.));

@@ -29,6 +29,8 @@ public:
 	Renderer(UINT textureNum = 1U, UINT constantBufferNum = 1U)
 		: mTextureNum(textureNum), mConstantBufferNum(constantBufferNum) {}
 
+	virtual ~Renderer() { mConstantBuffer->Unmap(0, nullptr); }
+
 	virtual void LoadContents(Scene& scene, Window& window);
 	virtual void SetCommandsForGraphicsPipeline(Scene& scene, Window& window);
 

@@ -1,4 +1,10 @@
-struct Infomation
+struct Inform
+{
+  float4 pos : SV_Position;
+  float2 uv : TEXCOORD;
+};
+
+struct Information
 {
   float4 pos : SV_Position;
   float4 normal : NORMAL0;
