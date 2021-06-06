@@ -101,9 +101,10 @@ void PMDRenderer::CreateAppResources(Actor& actor, Scene& scene, Window& window,
 	mSphereAdderResources.resize(mPMDMaterials.size());
 	mToonResources.resize(mPMDMaterials.size());
 
-	std::vector<ComPtr<ID3D12Resource>> uploadbuff(mPMDMaterials.size()); //copytexureregionがexecuteされるまでライフタイムがあればよい
-	std::vector<CD3DX12_TEXTURE_COPY_LOCATION[2]> locationses(mPMDMaterials.size());
+	auto& uploadLocations = scene.GetUploadLocations();
+	uploadLocations.resize(mPMDMaterials.size());
 
+	auto& resourcePath = actor.GetResourcePath();
 	//マテリアルリソース読み込みループ
 	for (int idx = 0; idx < mPMDMaterials.size(); idx++)
 	{
@@ -117,7 +118,7 @@ void PMDRenderer::CreateAppResources(Actor& actor, Scene& scene, Window& window,
 
 		try 
 		{
-			mToonResources[idx] = Texture::LoadTexture(uploadbuff[idx], locationses[idx], toonFilePath);
+			mToonResources[idx] = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, toonFilePath);
 		}
 		catch (std::exception e)
 		{
@@ -149,61 +150,61 @@ void PMDRenderer::CreateAppResources(Actor& actor, Scene& scene, Window& window,
 			{
 				texFileName = namePair.second;
 				auto tmp = Utility::GetTexturePathFromModelAndTexPath(
-					gModelPath, namePair.first.c_str()
+					resourcePath, namePair.first.c_str()
 				);
-				mSphereAdderResources[idx] = Texture::LoadTexture(uploadbuff[idx], locationses[idx], tmp);
+				mSphereAdderResources[idx] = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, tmp);
 			}
 			else if (firstNameExtension == "sph")
 			{
 				texFileName = namePair.second;
 				auto tmp = Utility::GetTexturePathFromModelAndTexPath(
-					gModelPath, namePair.first.c_str()
+					resourcePath, namePair.first.c_str()
 				);
-				mSphereResources[idx] = Texture::LoadTexture(uploadbuff[idx], locationses[idx], tmp);
+				mSphereResources[idx] = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, tmp);
 			}
 
 			if (secondNameExtension == "spa")
 			{
 				texFileName = namePair.first;
 				auto tmp = Utility::GetTexturePathFromModelAndTexPath(
-					gModelPath, namePair.second.c_str()
+					resourcePath, namePair.second.c_str()
 				);
-				mSphereAdderResources[idx] = Texture::LoadTexture(uploadbuff[idx], locationses[idx], tmp);
+				mSphereAdderResources[idx] = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, tmp);
 			}
 			else if (secondNameExtension == "sph")
 			{
 				texFileName = namePair.first;
 				auto tmp = Utility::GetTexturePathFromModelAndTexPath(
-					gModelPath, namePair.second.c_str()
+					resourcePath, namePair.second.c_str()
 				);
-				mSphereResources[idx] = Texture::LoadTexture(uploadbuff[idx], locationses[idx], tmp);
+				mSphereResources[idx] = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, tmp);
 			}
 
 			auto texFilePath = Utility::GetTexturePathFromModelAndTexPath(
-				gModelPath, texFileName.c_str()
+				resourcePath, texFileName.c_str()
 			);
-			mTexBuffers[idx] = Texture::LoadTexture(uploadbuff[idx], locationses[idx], texFilePath);
+			mTexBuffers[idx] = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, texFilePath);
 		}
 		else if (Utility::GetExtension(texFileName) == "spa")
 		{
 			auto texFilePath = Utility::GetTexturePathFromModelAndTexPath(
-				gModelPath, texFileName.c_str()
+				resourcePath, texFileName.c_str()
 			);
-			mSphereAdderResources[idx] = Texture::LoadTexture(uploadbuff[idx], locationses[idx], texFilePath);
+			mSphereAdderResources[idx] = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, texFilePath);
 		}
 		else if (Utility::GetExtension(texFileName) == "sph")
 		{
 			auto texFilePath = Utility::GetTexturePathFromModelAndTexPath(
-				gModelPath, texFileName.c_str()
+				resourcePath, texFileName.c_str()
 			);
-			mSphereResources[idx] = Texture::LoadTexture(uploadbuff[idx], locationses[idx], texFilePath);
+			mSphereResources[idx] = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, texFilePath);
 		}
 		else
 		{
 			auto texFilePath = Utility::GetTexturePathFromModelAndTexPath(
-				gModelPath, texFileName.c_str()
+				resourcePath, texFileName.c_str()
 			);
-			mTexBuffers[idx] = Texture::LoadTexture(uploadbuff[idx], locationses[idx], texFilePath);
+			mTexBuffers[idx] = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, texFilePath);
 		}
 	}
 	/*end*/
@@ -401,7 +402,7 @@ void PMDRenderer::LoadContents(Actor& actor, Scene& scene, Window& window)
 	//ルートシグネチャの作成
 	CreateAppRootSignature(scene, window, descTblRanges);
 	//pmd読み込み
-	auto fp = MMD::LoadPMD(mPMDHeader, mVertices, mIndices, gModelPath);
+	auto fp = MMD::LoadPMD(mPMDHeader, mVertices, mIndices, actor.GetResourcePath());
 	MMD::LoadPMD(fp, mPMDMaterials, mMaterials);
 	//actor行列の登録
 	LinkMatrixAndCBuffer(actor, scene, window);

@@ -86,9 +86,9 @@ void Renderer::LinkMatrixAndCBuffer(Actor& actor, Scene& scene, Window& window)
 /// </summary>
 void Renderer::CreateAppResources(Actor& actor, Scene& scene, Window& window, std::vector<std::vector<CD3DX12_DESCRIPTOR_RANGE>>& descTblRanges)
 {
-	auto& uploadLocation = scene.GetUploadLocations();
-	uploadLocation.push_back(UploadLocation());
-	mTexBuffer = Texture::LoadTexture(uploadLocation[0].uploadbuff, uploadLocation[0].locations, actor.GetResourcePath());
+	auto& uploadLocations = scene.GetUploadLocations();
+	uploadLocations.push_back(UploadLocation());
+	mTexBuffer = Texture::LoadTexture(uploadLocations[0].uploadbuff, uploadLocations[0].locations, actor.GetResourcePath());
 
 	/*リソース作成の仕上げ*/
 
