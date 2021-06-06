@@ -401,7 +401,8 @@ void PMDRenderer::LoadContents(Actor& actor, Scene& scene, Window& window)
 	//ルートシグネチャの作成
 	CreateAppRootSignature(scene, window, descTblRanges);
 	//pmd読み込み
-	LoadMMD(scene, window);
+	auto fp = MMD::LoadPMD(mPMDHeader, mVertices, mIndices, gModelPath);
+	MMD::LoadPMD(fp, mPMDMaterials, mMaterials);
 	//actor行列の登録
 	LinkMatrixAndCBuffer(actor, scene, window);
 	//外部リソース読み込み・登録
@@ -434,52 +435,5 @@ void PMDRenderer::SetAppGPUResources(Scene& scene, Window& window, ComPtr<ID3D12
 		commandList->DrawIndexedInstanced(m.indicesNum, 1, materialIdxOffset, 0, 0);
 		materialHandle.ptr += ptrIncOffset;
 		materialIdxOffset += m.indicesNum;
-	}
-}
-
-void PMDRenderer::LoadMMD(Scene& scene, Window& window)
-{
-	FILE* fp = nullptr;
-	auto err = ::fopen_s(&fp, gModelPath.c_str(), "rb");
-	if (fp == nullptr)
-	{
-		char strerr[256];
-		strerror_s(strerr, 256, err);
-		const std::string err_str = strerr;
-		::MessageBox(::GetActiveWindow(), Utility::GetWideStringFromString(err_str).c_str(), L"Open Error", MB_ICONERROR);
-		return;
-	}
-
-	char magicNum[3]{};
-	fread_s(magicNum, sizeof(magicNum), sizeof(char), sizeof(magicNum) / sizeof(char), fp);
-
-	fread_s(&(mPMDHeader.mVersion), sizeof(mPMDHeader.mVersion), sizeof(float), sizeof(mPMDHeader.mVersion) / sizeof(float), fp);
-	fread_s(mPMDHeader.mModelName, sizeof(mPMDHeader.mModelName), sizeof(char), sizeof(mPMDHeader.mModelName) / sizeof(char), fp);
-	fread_s(mPMDHeader.mComment, sizeof(mPMDHeader.mComment), sizeof(char), sizeof(mPMDHeader.mComment) / sizeof(char), fp);
-
-	uint32_t vertNum = 0;
-	fread_s(&vertNum, sizeof(vertNum), sizeof(uint32_t), 1, fp);
-	mVertices.resize(vertNum * mPMDVertexSize);
-	fread_s(mVertices.data(), mVertices.size() * sizeof(uint8_t), sizeof(uint8_t), mVertices.size(), fp);
-
-	uint32_t indicesNum = 0;
-	fread_s(&indicesNum, sizeof(indicesNum), sizeof(uint32_t), 1, fp);
-	mIndices.resize(indicesNum);
-	fread_s(mIndices.data(), mIndices.size() * sizeof(uint16_t), sizeof(uint16_t), mIndices.size(), fp);
-
-	uint32_t materialNum = 0;
-	fread_s(&materialNum, sizeof(materialNum), sizeof(uint32_t), sizeof(materialNum) / sizeof(materialNum), fp);
-	mPMDMaterials.resize(materialNum);
-	fread(mPMDMaterials.data(), mPMDMaterials.size() * sizeof(PMDMaterial), 1, fp);
-
-	mMaterials.resize(mPMDMaterials.size());
-	for (int idx = 0; idx < mPMDMaterials.size(); idx++)
-	{
-		mMaterials[idx].indicesNum = mPMDMaterials[idx].indicesNum;
-		mMaterials[idx].material.diffuse = mPMDMaterials[idx].diffuse;
-		mMaterials[idx].material.alpha = mPMDMaterials[idx].alpha;
-		mMaterials[idx].material.specular = mPMDMaterials[idx].specular;
-		mMaterials[idx].material.specularity = mPMDMaterials[idx].specularity;
-		mMaterials[idx].material.ambient = mPMDMaterials[idx].ambient;
 	}
 }

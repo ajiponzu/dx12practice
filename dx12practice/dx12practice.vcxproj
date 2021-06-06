@@ -175,7 +175,7 @@
   <ItemGroup>
     <ClCompile Include="corelib\Actor.cpp" />
     <ClCompile Include="corelib\Core.cpp" />
-    <ClCompile Include="corelib\Pmd.cpp" />
+    <ClCompile Include="corelib\Mmd.cpp" />
     <ClCompile Include="corelib\PMDActor.cpp" />
     <ClCompile Include="corelib\PMDRenderer.cpp" />
     <ClCompile Include="corelib\Renderer.cpp" />
@@ -255,7 +255,7 @@
     <ClInclude Include="corelib\Actor.h" />
     <ClInclude Include="corelib\Core.h" />
     <ClInclude Include="corelib\Helpers.h" />
-    <ClInclude Include="corelib\Pmd.h" />
+    <ClInclude Include="corelib\Mmd.h" />
     <ClInclude Include="corelib\PMDActor.h" />
     <ClInclude Include="corelib\PMDRenderer.h" />
     <ClInclude Include="corelib\Renderer.h" />

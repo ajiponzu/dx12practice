@@ -63,7 +63,7 @@
     <ClCompile Include="corelib\PMDActor.cpp">
       <Filter>CoreLib\Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="corelib\Pmd.cpp">
+    <ClCompile Include="corelib\Mmd.cpp">
       <Filter>CoreLib\Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -124,7 +124,7 @@
     <ClInclude Include="corelib\PMDActor.h">
       <Filter>CoreLib\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="corelib\Pmd.h">
+    <ClInclude Include="corelib\Mmd.h">
       <Filter>CoreLib\Header Files</Filter>
     </ClInclude>
   </ItemGroup>
