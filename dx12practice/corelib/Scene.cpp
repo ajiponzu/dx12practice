@@ -3,6 +3,7 @@
 #include "Renderer.h"
 #include "Actor.h"
 #include "Utility.h"
+#include "Core.h"
 
 Scene::Scene(const UINT& renderTargetsNum)
 	: mRenderTargetsNum(renderTargetsNum)
@@ -25,6 +26,21 @@ void Scene::Render(Window& window)
 
 void Scene::LoadContents(Window& window)
 {
+	mUploadLocations = std::make_shared<std::vector<UploadLocation>>();
+
 	for (auto& actor : mActors)
 		actor->LoadContents(*this, window);
+
+	SendGPUResources();
+
+	//終了処理
+	mUploadLocations->clear();
+	mUploadLocations = nullptr;
+}
+
+void Scene::SendGPUResources()
+{
+	auto& core = Core::GetInstance();
+	core.ExecuteAppCommandLists();
+	core.ResetGPUCommand();
 }

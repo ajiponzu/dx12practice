@@ -34,6 +34,6 @@ void Actor::SetInitCameraPos()
 void Actor::LoadContents()
 {
 	SetInitCameraPos();
-	mResourceList.push_back("textest.png");
+	mResourcePath = "textest.png";
 	mRenderer = std::make_shared<Renderer>();
 }

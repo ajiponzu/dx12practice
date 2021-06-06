@@ -5,6 +5,6 @@
 TestScene::TestScene(const UINT& renderTargetsNum)
 	: Scene(renderTargetsNum)
 {
-	//mActors.push_back(std::make_shared<Actor>());
-	mActors.push_back(std::make_shared<PMDActor>());
+	mActors.push_back(std::make_shared<Actor>());
+	//mActors.push_back(std::make_shared<PMDActor>());
 }

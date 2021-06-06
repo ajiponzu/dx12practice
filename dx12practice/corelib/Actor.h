@@ -29,7 +29,7 @@ protected:
 	MatrixData mMatrix{};
 	MatrixData* m_pMapMatrix = nullptr;
 
-	std::vector<std::string> mResourceList;
+	std::string mResourcePath;
 
 public:
 	Actor(const float& angle = 0.0f)
@@ -38,15 +38,17 @@ public:
 
 	virtual void Update(Scene& scene, Window& window);
 	virtual void Render(Scene& scene, Window& window);
-	virtual void SetInitCameraPos();
-	virtual void LoadContents();
 
 	void LoadContents(Scene& scene, Window& window);
 
-	std::vector<std::string>& GetResourceList() { return mResourceList; }
+	std::string& GetResourcePath() { return mResourcePath; }
 	InitCameraPos& GetInitCameraPos() { return mInitCameraPos; }
 	void SetMatrix(MatrixData& matrixData) { mMatrix = matrixData; mMatrix.eye = mInitCameraPos.eye; }
 	MatrixData* const* GetPMapMatrix() const { return &m_pMapMatrix; }
 	void SendMatrixDataToMap(MatrixData& matrixData) { *m_pMapMatrix = matrixData; }
 	void SendMatrixDataToMap() { *m_pMapMatrix = mMatrix; }
+
+protected:
+	virtual void SetInitCameraPos();
+	virtual void LoadContents();
 };

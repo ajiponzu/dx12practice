@@ -7,7 +7,7 @@
 //const std::string gModelPath = "assets/鏡音リン_act2.pmd";
 //const std::string gModelPath = "assets/鏡音レン.pmd";
 //const std::string gModelPath = "assets/弱音ハク.pmd";
-//const std::string gModelPath = "assets/咲音メイコ.pmd";
+const std::string gModelPath = "assets/咲音メイコ.pmd";
 //const std::string gModelPath = "assets/初音ミクVer2.pmd";
 //const std::string gModelPath = "assets/亞北ネル.pmd";
 //const std::string gModelPath = "assets/MEIKO.pmd";
@@ -16,7 +16,7 @@
 void PMDActor::LoadContents()
 {
 	SetInitCameraPos();
-	mResourceList.push_back("assets/咲音メイコ.pmd");
+	mResourcePath = gModelPath;
 	mRenderer = std::make_shared<PMDRenderer>();
 }
 
