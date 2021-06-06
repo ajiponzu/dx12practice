@@ -112,100 +112,8 @@ void PMDRenderer::CreateAppResources(Actor& actor, Scene& scene, Window& window,
 #ifdef _DEBUG
 		std::cout << std::endl << toonFilePath << ": ";
 #endif
-
-		try 
-		{
-			mMMDTextureList[idx].toon = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, toonFilePath);
-		}
-		catch (std::exception e)
-		{
-			mMMDTextureList[idx].toon = nullptr;
-		}
-
-		mMMDTextureList[idx].sphere = nullptr;
-		mMMDTextureList[idx].sphereAdder = nullptr;
-		std::string texFileName = mPMDMaterials[idx].texFilePath;
-		if (texFileName == "")
-		{
-			mMMDTextureList[idx].texBuffer = nullptr;
-			continue;
-		}
-
-		auto namePair = std::make_pair(texFileName, texFileName);
-#ifdef _DEBUG
-		std::cout << namePair.first << ", " << namePair.second;
-#endif
-		std::string firstNameExtension = Utility::GetExtension(texFileName),
-			secondNameExtension = Utility::GetExtension(texFileName);
-		if (std::count(texFileName.begin(), texFileName.end(), '*') > 0)
-		{
-			namePair = Utility::SplitFileName(texFileName);
-			firstNameExtension = Utility::GetExtension(namePair.first);
-			secondNameExtension = Utility::GetExtension(namePair.second);
-
-			if (firstNameExtension == "spa")
-			{
-				texFileName = namePair.second;
-				auto tmp = Utility::GetTexturePathFromModelAndTexPath(
-					resourcePath, namePair.first.c_str()
-				);
-				mMMDTextureList[idx].sphereAdder = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, tmp);
-			}
-			else if (firstNameExtension == "sph")
-			{
-				texFileName = namePair.second;
-				auto tmp = Utility::GetTexturePathFromModelAndTexPath(
-					resourcePath, namePair.first.c_str()
-				);
-				mMMDTextureList[idx].sphere = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, tmp);
-			}
-
-			if (secondNameExtension == "spa")
-			{
-				texFileName = namePair.first;
-				auto tmp = Utility::GetTexturePathFromModelAndTexPath(
-					resourcePath, namePair.second.c_str()
-				);
-				mMMDTextureList[idx].sphereAdder = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, tmp);
-			}
-			else if (secondNameExtension == "sph")
-			{
-				texFileName = namePair.first;
-				auto tmp = Utility::GetTexturePathFromModelAndTexPath(
-					resourcePath, namePair.second.c_str()
-				);
-				mMMDTextureList[idx].sphere = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, tmp);
-			}
-
-			auto texFilePath = Utility::GetTexturePathFromModelAndTexPath(
-				resourcePath, texFileName.c_str()
-			);
-			mMMDTextureList[idx].texBuffer = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, texFilePath);
-		}
-		else if (Utility::GetExtension(texFileName) == "spa")
-		{
-			auto texFilePath = Utility::GetTexturePathFromModelAndTexPath(
-				resourcePath, texFileName.c_str()
-			);
-			mMMDTextureList[idx].sphereAdder = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, texFilePath);
-		}
-		else if (Utility::GetExtension(texFileName) == "sph")
-		{
-			auto texFilePath = Utility::GetTexturePathFromModelAndTexPath(
-				resourcePath, texFileName.c_str()
-			);
-			mMMDTextureList[idx].sphere = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, texFilePath);
-		}
-		else
-		{
-			auto texFilePath = Utility::GetTexturePathFromModelAndTexPath(
-				resourcePath, texFileName.c_str()
-			);
-			mMMDTextureList[idx].texBuffer = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, texFilePath);
-		}
+		MMD::LoadPMDMaterialResources(idx, mMMDTextureList, uploadLocations, resourcePath, toonFilePath, mPMDMaterials[idx].texFilePath);
 	}
-	/*end*/
-
 	/*end*/
 
 	/*モデル全体の座標変換行列の登録*/
@@ -300,14 +208,6 @@ void PMDRenderer::CreateAppResources(Actor& actor, Scene& scene, Window& window,
 		window.SetBarrier(CD3DX12_RESOURCE_BARRIER::Transition(
 			mmdTexture.texBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
 		));
-
-	//window.UseBarrier();
-
-	//auto& core = Core::GetInstance();
-	//core.ExecuteAppCommandLists();
-	//core.ResetGPUCommand();
-
-	/*end*/
 }
 
 void PMDRenderer::CreateAppGraphicsPipelineState(Scene& scene, Window& window)

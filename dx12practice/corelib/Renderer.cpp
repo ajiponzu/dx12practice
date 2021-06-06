@@ -32,8 +32,7 @@ void Renderer::CreateAppRootSignature(Scene& scene, Window& window, std::vector<
 	samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 	samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
 	samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
-	//samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
-	samplerDesc.MaxLOD = 255;
+	samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
 	samplerDesc.MinLOD = 0.0f;
 	samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
 	samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
@@ -123,7 +122,6 @@ void Renderer::CreateAppResources(Actor& actor, Scene& scene, Window& window, st
 	window.SetBarrier(CD3DX12_RESOURCE_BARRIER::Transition(
 		mTexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
 	));
-	//window.UseBarrier();
 }
 
 /// <summary>
