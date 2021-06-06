@@ -32,5 +32,5 @@ public:
 	std::vector<UploadLocation>& GetUploadLocations() { return *mUploadLocations; }
 
 protected:
-	void SendGPUResources();
+	void SendGPUResources(Window& window);
 };

@@ -19,10 +19,7 @@ protected:
 	std::vector<Material> mMaterials{};
 	ComPtr<ID3D12Resource> mMaterialBuffer;
 	ComPtr<ID3D12DescriptorHeap> mMaterialDescHeap;
-	std::vector<ComPtr<ID3D12Resource>> mTexBuffers;
-	std::vector<ComPtr<ID3D12Resource>> mSphereResources;
-	std::vector<ComPtr<ID3D12Resource>> mSphereAdderResources;
-	std::vector<ComPtr<ID3D12Resource>> mToonResources;
+	std::vector<MMDTextures> mMMDTextureList;
 
 public:
 	PMDRenderer(const UINT& textureNum = 1U, const UINT& constantBufferNum = 1U)

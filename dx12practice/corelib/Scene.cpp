@@ -31,15 +31,16 @@ void Scene::LoadContents(Window& window)
 	for (auto& actor : mActors)
 		actor->LoadContents(*this, window);
 
-	SendGPUResources();
+	SendGPUResources(window);
 
 	//終了処理
 	mUploadLocations->clear();
 	mUploadLocations = nullptr;
 }
 
-void Scene::SendGPUResources()
+void Scene::SendGPUResources(Window& window)
 {
+	window.UseBarrier();
 	auto& core = Core::GetInstance();
 	core.ExecuteAppCommandLists();
 	core.ResetGPUCommand();

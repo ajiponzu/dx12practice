@@ -123,7 +123,7 @@ void Renderer::CreateAppResources(Actor& actor, Scene& scene, Window& window, st
 	window.SetBarrier(CD3DX12_RESOURCE_BARRIER::Transition(
 		mTexBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
 	));
-	window.UseBarrier();
+	//window.UseBarrier();
 }
 
 /// <summary>

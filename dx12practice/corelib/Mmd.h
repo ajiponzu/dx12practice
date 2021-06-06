@@ -60,6 +60,14 @@ struct Material
 	AdditionalMaterial additional{};
 };
 
+struct MMDTextures
+{
+	ComPtr<ID3D12Resource> texBuffer;
+	ComPtr<ID3D12Resource> sphere;
+	ComPtr<ID3D12Resource> sphereAdder;
+	ComPtr<ID3D12Resource> toon;
+};
+
 namespace MMD
 {
 	FILE* LoadPMD(PMDHeader& header, 	std::vector<uint8_t>& vertices, std::vector<uint16_t>& indices, const std::string& path);

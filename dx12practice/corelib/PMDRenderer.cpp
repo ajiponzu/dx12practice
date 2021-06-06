@@ -96,10 +96,7 @@ void PMDRenderer::CreateAppResources(Actor& actor, Scene& scene, Window& window,
 	matCBVDesc.SizeInBytes = static_cast<UINT>(materialBuffSize);
 
 	/*テクスチャ*/
-	mTexBuffers.resize(mPMDMaterials.size());
-	mSphereResources.resize(mPMDMaterials.size());
-	mSphereAdderResources.resize(mPMDMaterials.size());
-	mToonResources.resize(mPMDMaterials.size());
+	mMMDTextureList.resize(mPMDMaterials.size());
 
 	auto& uploadLocations = scene.GetUploadLocations();
 	uploadLocations.resize(mPMDMaterials.size());
@@ -118,19 +115,19 @@ void PMDRenderer::CreateAppResources(Actor& actor, Scene& scene, Window& window,
 
 		try 
 		{
-			mToonResources[idx] = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, toonFilePath);
+			mMMDTextureList[idx].toon = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, toonFilePath);
 		}
 		catch (std::exception e)
 		{
-			mToonResources[idx] = nullptr;
+			mMMDTextureList[idx].toon = nullptr;
 		}
 
-		mSphereResources[idx] = nullptr;
-		mSphereAdderResources[idx] = nullptr;
+		mMMDTextureList[idx].sphere = nullptr;
+		mMMDTextureList[idx].sphereAdder = nullptr;
 		std::string texFileName = mPMDMaterials[idx].texFilePath;
 		if (texFileName == "")
 		{
-			mTexBuffers[idx] = nullptr;
+			mMMDTextureList[idx].texBuffer = nullptr;
 			continue;
 		}
 
@@ -152,7 +149,7 @@ void PMDRenderer::CreateAppResources(Actor& actor, Scene& scene, Window& window,
 				auto tmp = Utility::GetTexturePathFromModelAndTexPath(
 					resourcePath, namePair.first.c_str()
 				);
-				mSphereAdderResources[idx] = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, tmp);
+				mMMDTextureList[idx].sphereAdder = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, tmp);
 			}
 			else if (firstNameExtension == "sph")
 			{
@@ -160,7 +157,7 @@ void PMDRenderer::CreateAppResources(Actor& actor, Scene& scene, Window& window,
 				auto tmp = Utility::GetTexturePathFromModelAndTexPath(
 					resourcePath, namePair.first.c_str()
 				);
-				mSphereResources[idx] = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, tmp);
+				mMMDTextureList[idx].sphere = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, tmp);
 			}
 
 			if (secondNameExtension == "spa")
@@ -169,7 +166,7 @@ void PMDRenderer::CreateAppResources(Actor& actor, Scene& scene, Window& window,
 				auto tmp = Utility::GetTexturePathFromModelAndTexPath(
 					resourcePath, namePair.second.c_str()
 				);
-				mSphereAdderResources[idx] = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, tmp);
+				mMMDTextureList[idx].sphereAdder = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, tmp);
 			}
 			else if (secondNameExtension == "sph")
 			{
@@ -177,34 +174,34 @@ void PMDRenderer::CreateAppResources(Actor& actor, Scene& scene, Window& window,
 				auto tmp = Utility::GetTexturePathFromModelAndTexPath(
 					resourcePath, namePair.second.c_str()
 				);
-				mSphereResources[idx] = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, tmp);
+				mMMDTextureList[idx].sphere = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, tmp);
 			}
 
 			auto texFilePath = Utility::GetTexturePathFromModelAndTexPath(
 				resourcePath, texFileName.c_str()
 			);
-			mTexBuffers[idx] = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, texFilePath);
+			mMMDTextureList[idx].texBuffer = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, texFilePath);
 		}
 		else if (Utility::GetExtension(texFileName) == "spa")
 		{
 			auto texFilePath = Utility::GetTexturePathFromModelAndTexPath(
 				resourcePath, texFileName.c_str()
 			);
-			mSphereAdderResources[idx] = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, texFilePath);
+			mMMDTextureList[idx].sphereAdder = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, texFilePath);
 		}
 		else if (Utility::GetExtension(texFileName) == "sph")
 		{
 			auto texFilePath = Utility::GetTexturePathFromModelAndTexPath(
 				resourcePath, texFileName.c_str()
 			);
-			mSphereResources[idx] = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, texFilePath);
+			mMMDTextureList[idx].sphere = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, texFilePath);
 		}
 		else
 		{
 			auto texFilePath = Utility::GetTexturePathFromModelAndTexPath(
 				resourcePath, texFileName.c_str()
 			);
-			mTexBuffers[idx] = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, texFilePath);
+			mMMDTextureList[idx].texBuffer = Texture::LoadTexture(uploadLocations[idx].uploadbuff, uploadLocations[idx].locations, texFilePath);
 		}
 	}
 	/*end*/
@@ -238,14 +235,15 @@ void PMDRenderer::CreateAppResources(Actor& actor, Scene& scene, Window& window,
 		D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
 	);
 
-	std::vector<ComPtr<ID3D12Resource>> uploadbuff2(mPMDMaterials.size()); 
-	std::vector<CD3DX12_TEXTURE_COPY_LOCATION[2]> locationses2(3);
-	std::string path = "white";
-	auto whiteTex = Texture::LoadTexture(uploadbuff2[0], locationses2[0], path);
-	path = "black";
-	auto blackTex = Texture::LoadTexture(uploadbuff2[1], locationses2[1], path);
-	path = "grad";
-	auto gradTex =  Texture::LoadTexture(uploadbuff2[2], locationses2[2], path);
+	ComPtr<ID3D12Resource> tex[3];
+	std::string pathes[3] = { "white", "black", "grad" };
+	for (int idx = 0; idx < 3; idx++)
+	{
+		uploadLocations.push_back(UploadLocation());
+		auto& uploadLocation = *uploadLocations.rbegin();
+		tex[idx] = Texture::LoadTexture(uploadLocation.uploadbuff, uploadLocation.locations, pathes[idx]);
+	}
+	auto& whiteTex = tex[0], blackTex = tex[1], gradTex = tex[2];
 
 	UINT ptr_idx = 0;
 	for (int idx = 0; idx < mPMDMaterials.size(); idx++)
@@ -254,42 +252,42 @@ void PMDRenderer::CreateAppResources(Actor& actor, Scene& scene, Window& window,
 		matDescHeapHandle.ptr += incOffset;
 		matCBVDesc.BufferLocation += materialBuffSize;
 
-		if (mTexBuffers[idx] == nullptr)
-			mTexBuffers[idx] = whiteTex;
+		if (mMMDTextureList[idx].texBuffer == nullptr)
+			mMMDTextureList[idx].texBuffer = whiteTex;
 
-		srvDesc.Format = mTexBuffers[idx]->GetDesc().Format;
+		srvDesc.Format = mMMDTextureList[idx].texBuffer->GetDesc().Format;
 		Core::GetInstance().GetDevice()->CreateShaderResourceView(
-			mTexBuffers[idx].Get(), &srvDesc, matDescHeapHandle
+			mMMDTextureList[idx].texBuffer.Get(), &srvDesc, matDescHeapHandle
 		);
 
 		matDescHeapHandle.ptr += incOffset;
 
-		if (!mSphereResources[idx])
-			mSphereResources[idx] = whiteTex;
+		if (!mMMDTextureList[idx].sphere)
+			mMMDTextureList[idx].sphere = whiteTex;
 
-		srvDesc.Format = mSphereResources[idx]->GetDesc().Format;
+		srvDesc.Format = mMMDTextureList[idx].sphere->GetDesc().Format;
 		Core::GetInstance().GetDevice()->CreateShaderResourceView(
-			mSphereResources[idx].Get(), &srvDesc, matDescHeapHandle
+			mMMDTextureList[idx].sphere.Get(), &srvDesc, matDescHeapHandle
 		);
 
 		matDescHeapHandle.ptr += incOffset;
 
-		if (!mSphereAdderResources[idx])
-			mSphereAdderResources[idx] = blackTex;
+		if (!mMMDTextureList[idx].sphereAdder)
+			mMMDTextureList[idx].sphereAdder = blackTex;
 
-		srvDesc.Format = mSphereAdderResources[idx]->GetDesc().Format;
+		srvDesc.Format = mMMDTextureList[idx].sphereAdder->GetDesc().Format;
 		Core::GetInstance().GetDevice()->CreateShaderResourceView(
-			mSphereAdderResources[idx].Get(), &srvDesc, matDescHeapHandle
+			mMMDTextureList[idx].sphereAdder.Get(), &srvDesc, matDescHeapHandle
 		);
 
 		matDescHeapHandle.ptr += incOffset;
 
-		if (!mToonResources[idx])
-			mToonResources[idx] = gradTex;
+		if (!mMMDTextureList[idx].toon)
+			mMMDTextureList[idx].toon = gradTex;
 
-		srvDesc.Format = mToonResources[idx]->GetDesc().Format;
+		srvDesc.Format = mMMDTextureList[idx].toon->GetDesc().Format;
 		Core::GetInstance().GetDevice()->CreateShaderResourceView(
-			mToonResources[idx].Get(), &srvDesc, matDescHeapHandle
+			mMMDTextureList[idx].toon.Get(), &srvDesc, matDescHeapHandle
 		);
 
 		matDescHeapHandle.ptr += incOffset;
@@ -298,16 +296,16 @@ void PMDRenderer::CreateAppResources(Actor& actor, Scene& scene, Window& window,
 	/*end*/
 
 	/*GPUへ送信*/
-	for (auto& texBuffer : mTexBuffers)
+	for (auto& mmdTexture : mMMDTextureList)
 		window.SetBarrier(CD3DX12_RESOURCE_BARRIER::Transition(
-			texBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
+			mmdTexture.texBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
 		));
 
-	window.UseBarrier();
+	//window.UseBarrier();
 
-	auto& core = Core::GetInstance();
-	core.ExecuteAppCommandLists();
-	core.ResetGPUCommand();
+	//auto& core = Core::GetInstance();
+	//core.ExecuteAppCommandLists();
+	//core.ResetGPUCommand();
 
 	/*end*/
 }
