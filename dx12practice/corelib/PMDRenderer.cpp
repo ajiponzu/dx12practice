@@ -91,18 +91,14 @@ void PMDRenderer::CreateAppResources(Actor& actor, Scene& scene, Window& window,
 	matDescHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	ThrowIfFailed(Core::GetInstance().GetDevice()->CreateDescriptorHeap(&matDescHeapDesc, IID_PPV_ARGS(&mMaterialDescHeap)));
 
-	D3D12_CONSTANT_BUFFER_VIEW_DESC matCBVDesc{};
-	matCBVDesc.BufferLocation = mMaterialBuffer->GetGPUVirtualAddress();
-	matCBVDesc.SizeInBytes = static_cast<UINT>(materialBuffSize);
-
-	/*テクスチャ*/
-	mMMDTextureList.resize(mPMDMaterials.size());
+	/*マテリアルリソース読み込みループ*/
+	mMMDTexturesList.resize(mPMDMaterials.size());
 
 	auto& uploadLocations = scene.GetUploadLocations();
 	uploadLocations.resize(mPMDMaterials.size());
 
 	auto& resourcePath = actor.GetResourcePath();
-	//マテリアルリソース読み込みループ
+
 	for (int idx = 0; idx < mPMDMaterials.size(); idx++)
 	{
 		std::string toonFilePath = "toon/";
@@ -112,9 +108,24 @@ void PMDRenderer::CreateAppResources(Actor& actor, Scene& scene, Window& window,
 #ifdef _DEBUG
 		std::cout << std::endl << toonFilePath << ": ";
 #endif
-		MMD::LoadPMDMaterialResources(idx, mMMDTextureList, uploadLocations, resourcePath, toonFilePath, mPMDMaterials[idx].texFilePath);
+		MMD::LoadPMDMaterialResources(idx, mMMDTexturesList, uploadLocations, resourcePath, toonFilePath, mPMDMaterials[idx].texFilePath);
 	}
 	/*end*/
+
+	/*マテリアル座標登録*/
+	D3D12_CONSTANT_BUFFER_VIEW_DESC matCBVDesc{};
+	matCBVDesc.BufferLocation = mMaterialBuffer->GetGPUVirtualAddress();
+	matCBVDesc.SizeInBytes = static_cast<UINT>(materialBuffSize);
+	/*end*/
+
+	//マテリアルテクスチャ生成
+	MMD::MakePMDMaterialTexture(mMMDTexturesList, uploadLocations, mMaterialDescHeap, matCBVDesc);
+
+	/*GPUへ送信*/
+	for (auto& mmdTexture : mMMDTexturesList)
+		window.SetBarrier(CD3DX12_RESOURCE_BARRIER::Transition(
+			mmdTexture.texBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
+		));
 
 	/*モデル全体の座標変換行列の登録*/
 	auto& constanBuffDescTblRange = descTblRanges[0];
@@ -132,82 +143,6 @@ void PMDRenderer::CreateAppResources(Actor& actor, Scene& scene, Window& window,
 	//定数バッファビューの作成
 	Core::GetInstance().GetDevice()->CreateConstantBufferView(&cbvDesc, resourceDescHeapHandle);
 	/*end*/
-
-	/*マテリアルテクスチャの作成*/
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MipLevels = 1;
-	auto matDescHeapHandle = mMaterialDescHeap->GetCPUDescriptorHandleForHeapStart();
-	auto incOffset = Core::GetInstance().GetDevice()->GetDescriptorHandleIncrementSize(
-		D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV
-	);
-
-	ComPtr<ID3D12Resource> tex[3];
-	std::string pathes[3] = { "white", "black", "grad" };
-	for (int idx = 0; idx < 3; idx++)
-	{
-		uploadLocations.push_back(UploadLocation());
-		auto& uploadLocation = *uploadLocations.rbegin();
-		tex[idx] = Texture::LoadTexture(uploadLocation.uploadbuff, uploadLocation.locations, pathes[idx]);
-	}
-	auto& whiteTex = tex[0], blackTex = tex[1], gradTex = tex[2];
-
-	UINT ptr_idx = 0;
-	for (int idx = 0; idx < mPMDMaterials.size(); idx++)
-	{
-		Core::GetInstance().GetDevice()->CreateConstantBufferView(&matCBVDesc, matDescHeapHandle);
-		matDescHeapHandle.ptr += incOffset;
-		matCBVDesc.BufferLocation += materialBuffSize;
-
-		if (mMMDTextureList[idx].texBuffer == nullptr)
-			mMMDTextureList[idx].texBuffer = whiteTex;
-
-		srvDesc.Format = mMMDTextureList[idx].texBuffer->GetDesc().Format;
-		Core::GetInstance().GetDevice()->CreateShaderResourceView(
-			mMMDTextureList[idx].texBuffer.Get(), &srvDesc, matDescHeapHandle
-		);
-
-		matDescHeapHandle.ptr += incOffset;
-
-		if (!mMMDTextureList[idx].sphere)
-			mMMDTextureList[idx].sphere = whiteTex;
-
-		srvDesc.Format = mMMDTextureList[idx].sphere->GetDesc().Format;
-		Core::GetInstance().GetDevice()->CreateShaderResourceView(
-			mMMDTextureList[idx].sphere.Get(), &srvDesc, matDescHeapHandle
-		);
-
-		matDescHeapHandle.ptr += incOffset;
-
-		if (!mMMDTextureList[idx].sphereAdder)
-			mMMDTextureList[idx].sphereAdder = blackTex;
-
-		srvDesc.Format = mMMDTextureList[idx].sphereAdder->GetDesc().Format;
-		Core::GetInstance().GetDevice()->CreateShaderResourceView(
-			mMMDTextureList[idx].sphereAdder.Get(), &srvDesc, matDescHeapHandle
-		);
-
-		matDescHeapHandle.ptr += incOffset;
-
-		if (!mMMDTextureList[idx].toon)
-			mMMDTextureList[idx].toon = gradTex;
-
-		srvDesc.Format = mMMDTextureList[idx].toon->GetDesc().Format;
-		Core::GetInstance().GetDevice()->CreateShaderResourceView(
-			mMMDTextureList[idx].toon.Get(), &srvDesc, matDescHeapHandle
-		);
-
-		matDescHeapHandle.ptr += incOffset;
-	}
-
-	/*end*/
-
-	/*GPUへ送信*/
-	for (auto& mmdTexture : mMMDTextureList)
-		window.SetBarrier(CD3DX12_RESOURCE_BARRIER::Transition(
-			mmdTexture.texBuffer.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
-		));
 }
 
 void PMDRenderer::CreateAppGraphicsPipelineState(Scene& scene, Window& window)

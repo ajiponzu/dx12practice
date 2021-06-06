@@ -75,7 +75,8 @@ namespace MMD
 	FILE* LoadPMD(PMDHeader& header, std::vector<uint8_t>& vertices, std::vector<uint16_t>& indices, const std::string& path);
 	void LoadPMD(FILE* fp, std::vector<PMDMaterial>& pmdMaterials, std::vector<Material>& materials);
 	void LoadPMDMaterialResources(
-		const int& idx, std::vector<MMDTextures>& mmdTextureList, std::vector<UploadLocation>& uploadLocation,
+		const int& idx, std::vector<MMDTextures>& mmdTexturesList, std::vector<UploadLocation>& uploadLocations,
 		const std::string& resourcePath, const std::string& toonFilePath, std::string texFileName
 	);
+	void MakePMDMaterialTexture(std::vector<MMDTextures>& mmdTexturesList, std::vector<UploadLocation>& uploadLocations, ComPtr<ID3D12DescriptorHeap>& materialDescHeap, D3D12_CONSTANT_BUFFER_VIEW_DESC& matCBVDesc);
 };

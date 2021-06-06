@@ -1,5 +1,11 @@
 #pragma once
 
+struct UploadLocation
+{
+	ComPtr<ID3D12Resource> uploadbuff;
+	CD3DX12_TEXTURE_COPY_LOCATION locations[2]{};
+};
+
 class Scene;
 
 /// <summary>
