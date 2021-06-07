@@ -1,6 +1,8 @@
 #include "corelib/Core.h"
 #include "corelib/Utility.h"
+
 #include "src/TestScene.h"
+#include "src/PMDScene.h"
 
 /// <summary>
 /// エントリポイント
@@ -33,7 +35,7 @@ int APIENTRY WinMain(_In_ HINSTANCE hInst, _In_opt_ HINSTANCE _hInst, _In_ LPSTR
 	Core::MakeInstance(hInst, L"ゲーム", 1280, 720);
 	Core::SetWindow();
 
-	auto scene = std::make_unique<TestScene>();
+	auto scene = std::make_unique<TestScene>(); //作成するsceneによって表示が変化
 	Core::Run(std::move(scene));
 
 	/*end*/

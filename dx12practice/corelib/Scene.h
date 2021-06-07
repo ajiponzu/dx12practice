@@ -41,5 +41,5 @@ public:
 
 protected:
 	void SendGPUResources(Window& window);
-	virtual void InitCameraPos(Window& window);
+	virtual void InitCameraPos(Window& window) {}
 };

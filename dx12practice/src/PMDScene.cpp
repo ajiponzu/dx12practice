@@ -1,17 +1,16 @@
-#include "TestScene.h"
-#include "../corelib/PMDRenderer.h"
-#include "../corelib/PMDActor.h"
+#include "../pch.h"
+#include "PMDScene.h"
 #include "../corelib/Window.h"
+#include "../corelib/PMDActor.h"
 
-TestScene::TestScene(const UINT& renderTargetsNum)
-	: Scene(renderTargetsNum)
+PMDScene::PMDScene(const UINT& renderTargetsNum)
 {
-	mActors.push_back(std::make_shared<Actor>());
+	mActors.push_back(std::make_shared<PMDActor>());
 }
 
-void TestScene::InitCameraPos(Window& window)
+void PMDScene::InitCameraPos(Window& window)
 {
-	XMFLOAT3 eye(0.0f, 0.0f, -5.0f), target(0.0f, 0.0f, 0.0f), up(0.0f, 1.0f, 0.0f);
+	XMFLOAT3 eye(0.0f, 15.0f, -20.0f), target(0.0f, 15.0f, 0.0f), up(0.0f, 1.0f, 0.0f);
 
 	auto view = XMMatrixLookAtLH(
 		XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up)

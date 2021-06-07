@@ -66,6 +66,9 @@
     <ClCompile Include="corelib\Mmd.cpp">
       <Filter>CoreLib\Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\PMDScene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="shaders\VertexShader.hlsl">
@@ -126,6 +129,9 @@
     </ClInclude>
     <ClInclude Include="corelib\Mmd.h">
       <Filter>CoreLib\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PMDScene.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -32,7 +32,8 @@ void Scene::LoadContents(Window& window)
 	for (auto& actor : mActors)
 		actor->LoadContents(*this, window);
 
-	SendGPUResources(window);
+	if (!mActors.empty())
+		SendGPUResources(window);
 
 	//終了処理
 	mUploadLocations->clear();
@@ -45,19 +46,4 @@ void Scene::SendGPUResources(Window& window)
 	auto& core = Core::GetInstance();
 	core.ExecuteAppCommandLists();
 	core.ResetGPUCommand();
-}
-
-void Scene::InitCameraPos(Window& window)
-{
-	XMFLOAT3 eye(0.0f, 0.0f, -5.0f), target(0.0f, 0.0f, 0.0f), up(0.0f, 1.0f, 0.0f);
-
-	auto view = XMMatrixLookAtLH(
-		XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up)
-	);
-	auto projection = XMMatrixPerspectiveFovLH(
-		XM_PIDIV4, static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight()),
-		1.0f, 100.0f
-	);
-
-	mCameraPos = CameraPos{ view, projection, eye, target, up };
 }
