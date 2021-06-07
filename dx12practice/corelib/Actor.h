@@ -37,6 +37,7 @@ public:
 
 	const std::string& GetResourcePath() const { return mResourcePath; }
 	void SetMatrix(const CameraPos& camera);
+	void SetResourcePath(const std::string& path) { mResourcePath = path; }
 	MatrixData* const* GetPMapMatrix() const { return &m_pMapMatrix; }
 	void SendMatrixDataToMap() { *m_pMapMatrix = mMatrix; }
 

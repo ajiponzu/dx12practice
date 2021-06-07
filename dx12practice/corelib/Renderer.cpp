@@ -301,6 +301,9 @@ void Renderer::SetCommandsOnRStage(Scene& scene, Window& window, ComPtr<ID3D12Gr
 /// <param name="window"></param>
 void Renderer::LoadContents(Actor& actor, Scene& scene, Window& window)
 {
+	if (actor.GetResourcePath() == "")
+		actor.SetResourcePath("black");
+
 	std::vector<std::vector<CD3DX12_DESCRIPTOR_RANGE>> descTblRanges{};
 	//ルートシグネチャの作成
 	CreateAppRootSignature(scene, window, descTblRanges);

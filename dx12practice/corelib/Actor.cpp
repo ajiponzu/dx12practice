@@ -36,6 +36,7 @@ void Actor::SetMatrix(const CameraPos& camera)
 void Actor::LoadContents()
 {
 	mMatrix.world = XMMatrixRotationY(XM_PI);
-	mResourcePath = "textest.png";
+	//リソースパスを登録しない場合, 黒画像が表示される
+	//mResourcePath = "textest.png";
 	mRenderer = std::make_shared<Renderer>();
 }
