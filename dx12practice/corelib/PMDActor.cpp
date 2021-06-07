@@ -15,13 +15,7 @@ const std::string gModelPath = "assets/咲音メイコ.pmd";
 
 void PMDActor::LoadContents()
 {
-	SetInitCameraPos();
+	mMatrix.world = XMMatrixRotationX(XM_PI);
 	mResourcePath = gModelPath;
 	mRenderer = std::make_shared<PMDRenderer>();
-}
-
-void PMDActor::SetInitCameraPos()
-{
-	XMFLOAT3 eye(0.0f, 15.0f, -20.0f), target(0.0f, 15.0f, 0.0f), up(0.0f, 1.0f, 0.0f);
-	mInitCameraPos = InitCameraPos{ eye, target, up };
 }

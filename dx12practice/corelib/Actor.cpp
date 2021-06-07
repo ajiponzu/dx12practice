@@ -2,12 +2,13 @@
 #include "Texture.h"
 #include "Utility.h"
 #include "Renderer.h"
+#include "Scene.h"
 
 void Actor::Update(Scene& scene, Window& window)
 {
 	mAngle += 0.06f;
 	mMatrix.world = XMMatrixRotationY(mAngle);
-	
+
 	//マッピングしているのはMatrixData型のメモリ領域
 	// 節約のためにメンバだけコピーしても反映されない
 	SendMatrixDataToMap();
@@ -25,15 +26,16 @@ void Actor::LoadContents(Scene& scene, Window& window)
 	mRenderer->LoadContents(*this, scene, window);
 }
 
-void Actor::SetInitCameraPos()
+void Actor::SetMatrix(const CameraPos& camera)
 {
-	XMFLOAT3 eye(0.0f, 0.0f, -5.0f), target(0.0f, 0.0f, 0.0f), up(0.0f, 1.0f, 0.0f);
-	mInitCameraPos = InitCameraPos{ eye, target, up };
+	mMatrix.view = camera.mViewMat;
+	mMatrix.projection = camera.mProjMat;
+	mMatrix.eye = camera.eye;
 }
 
 void Actor::LoadContents()
 {
-	SetInitCameraPos();
+	mMatrix.world = XMMatrixRotationY(XM_PI);
 	mResourcePath = "textest.png";
 	mRenderer = std::make_shared<Renderer>();
 }

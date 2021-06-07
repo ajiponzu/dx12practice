@@ -67,17 +67,10 @@ void Renderer::LinkMatrixAndCBuffer(Actor& actor, Scene& scene, Window& window)
 
 	//ループ内で変換させる場合はマップしたままにしておく
 	ThrowIfFailed(mConstantBuffer->Map(0, nullptr, (void**)actor.GetPMapMatrix()));
+	auto a = actor.GetPMapMatrix();
 
-	MatrixData matrixData{};
-	auto& initCameraPos = actor.GetInitCameraPos();
-	matrixData.world = std::move(XMMatrixRotationY(XM_PI));
-	matrixData.view = std::move(XMMatrixLookAtLH(XMLoadFloat3(&initCameraPos.eye), XMLoadFloat3(&initCameraPos.target), XMLoadFloat3(&initCameraPos.up)));
-	matrixData.projection = std::move(XMMatrixPerspectiveFovLH(
-		XM_PIDIV4, static_cast<float>(window.GetWidth()) / static_cast<float>(window.GetHeight()),
-		1.0f, 100.0f
-	));
-	actor.SetMatrix(matrixData);
-	actor.SendMatrixDataToMap(matrixData);
+	actor.SetMatrix(scene.GetCameraPos());
+	actor.SendMatrixDataToMap();
 }
 
 /// <summary>
