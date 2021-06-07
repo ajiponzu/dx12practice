@@ -31,8 +31,6 @@ ComPtr<ID3D12Resource> Texture::LoadTextureFromFile(ComPtr<ID3D12Resource>& uplo
 	ScratchImage scratchImg = {};
 	auto wtexpath = Utility::GetWideStringFromString(texPath);//テクスチャのファイルパス
 	auto ext = Utility::GetExtension(texPath);//拡張子を取得
-	if (ext == "psd")
-		return nullptr;
 	ThrowIfFailed(gLoadLamdaTable[ext](wtexpath, &metadata, scratchImg));
 	auto img = scratchImg.GetImage(0, 0, 0);//生データ抽出
 	auto imgAlignSize = Utility::AlignmentedSize(img->rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
@@ -179,7 +177,7 @@ void Texture::MapTexture(ComPtr<ID3D12Resource>& uploadbuff, uint8_t* pImgData, 
 	uploadbuff->Unmap(0, nullptr);
 }
 
-D3D12_PLACED_SUBRESOURCE_FOOTPRINT Texture::MakeFootprint(ComPtr<ID3D12Resource>& texbuff, CD3DX12_RESOURCE_DESC& resDesc, size_t imgAlignSize)
+D3D12_PLACED_SUBRESOURCE_FOOTPRINT Texture::MakeFootprint(ComPtr<ID3D12Resource>& texbuff, CD3DX12_RESOURCE_DESC& resDesc, const size_t& imgAlignSize)
 {
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint{};
 	auto desc = texbuff->GetDesc();
@@ -192,7 +190,7 @@ D3D12_PLACED_SUBRESOURCE_FOOTPRINT Texture::MakeFootprint(ComPtr<ID3D12Resource>
 	return footprint;
 }
 
-void Texture::SetCopyTextureCommand(ComPtr<ID3D12Resource>& uploadbuff, ComPtr<ID3D12Resource>& texbuff, CD3DX12_TEXTURE_COPY_LOCATION locations[2], D3D12_PLACED_SUBRESOURCE_FOOTPRINT& footprint)
+void Texture::SetCopyTextureCommand(ComPtr<ID3D12Resource>& uploadbuff, ComPtr<ID3D12Resource>& texbuff, CD3DX12_TEXTURE_COPY_LOCATION locations[2], const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& footprint)
 {
 	auto& dst = locations[0], src = locations[1];
 

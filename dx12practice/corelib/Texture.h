@@ -17,6 +17,6 @@ namespace Texture
 	static ComPtr<ID3D12Resource> CreateTexture(ComPtr<ID3D12Resource>& uploadbuff, std::vector<uint8_t>& texData, CD3DX12_TEXTURE_COPY_LOCATION locations[2], UINT params[4]);
 	static void SetBufferProps(CD3DX12_HEAP_PROPERTIES& upload, CD3DX12_HEAP_PROPERTIES& texHeap);
 	static void MapTexture(ComPtr<ID3D12Resource>& uploadbuff, uint8_t* pImgData, size_t params[3]);
-	static D3D12_PLACED_SUBRESOURCE_FOOTPRINT MakeFootprint(ComPtr<ID3D12Resource>& texbuff, CD3DX12_RESOURCE_DESC& resDesc, size_t imgAlignSize);
-	static void SetCopyTextureCommand(ComPtr<ID3D12Resource>& uploadbuff, ComPtr<ID3D12Resource>& texbuff, CD3DX12_TEXTURE_COPY_LOCATION locations[2], D3D12_PLACED_SUBRESOURCE_FOOTPRINT& footprint);
+	static D3D12_PLACED_SUBRESOURCE_FOOTPRINT MakeFootprint(ComPtr<ID3D12Resource>& texbuff, CD3DX12_RESOURCE_DESC& resDesc, const size_t& imgAlignSize);
+	static void SetCopyTextureCommand(ComPtr<ID3D12Resource>& uploadbuff, ComPtr<ID3D12Resource>& texbuff, CD3DX12_TEXTURE_COPY_LOCATION locations[2], const D3D12_PLACED_SUBRESOURCE_FOOTPRINT& footprint);
 };

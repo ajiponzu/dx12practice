@@ -65,7 +65,7 @@ std::wstring Utility::GetExtension(const std::wstring& path)
 	return path.substr(idx + 1, path.length() - idx - 1);
 }
 
-std::pair<std::string, std::string> Utility::SplitFileName(const std::string& path, const char splitter)
+std::pair<std::string, std::string> Utility::SplitFileName(const std::string& path, const char& splitter)
 {
 	auto idx = path.find(splitter);
 	std::pair<std::string, std::string> ret;

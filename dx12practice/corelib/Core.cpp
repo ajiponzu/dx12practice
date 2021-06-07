@@ -87,7 +87,7 @@ void Core::MakeInstance(HINSTANCE hInst, const std::wstring title, const int& wi
 	}
 }
 
-void Core::SetWindow(const int& wid, const int& high, UINT bufferCount)
+void Core::SetWindow(const int& wid, const int& high, const UINT& bufferCount)
 {
 	auto pWindow = std::make_shared<Window>(sHwnd, bufferCount, wid, high);
 	gWindows[sHwnd] = pWindow;

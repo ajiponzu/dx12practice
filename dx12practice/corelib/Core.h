@@ -42,7 +42,7 @@ public:
 	}
 
 	static void MakeInstance(HINSTANCE hInst, const std::wstring title, const int& wid = 1280, const int& high = 720);
-	static void SetWindow(const int& wid = 1280, const int& high = 720, UINT bufferCount = 2);
+	static void SetWindow(const int& wid = 1280, const int& high = 720, const UINT& bufferCount = 2);
 	static Core& GetInstance();
 	static void Run();
 	static void Run(std::unique_ptr<Scene>&& scene);

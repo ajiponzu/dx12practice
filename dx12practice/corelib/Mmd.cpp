@@ -37,7 +37,7 @@ FILE* MMD::LoadPMD(PMDHeader& header, std::vector<uint8_t>& vertices, std::vecto
 	return fp;
 }
 
-void MMD::LoadPMD(FILE* fp, std::vector<PMDMaterial>& pmdMaterials, std::vector<Material>& materials)
+void MMD::LoadPMD(FILE* const fp, std::vector<PMDMaterial>& pmdMaterials, std::vector<Material>& materials)
 {
 	uint32_t materialNum = 0;
 	fread_s(&materialNum, sizeof(materialNum), sizeof(uint32_t), sizeof(materialNum) / sizeof(materialNum), fp);

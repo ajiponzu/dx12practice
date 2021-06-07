@@ -35,7 +35,7 @@ public:
 
 	void LoadContents(Scene& scene, Window& window);
 
-	std::string& GetResourcePath() { return mResourcePath; }
+	const std::string& GetResourcePath() const { return mResourcePath; }
 	void SetMatrix(const CameraPos& camera);
 	MatrixData* const* GetPMapMatrix() const { return &m_pMapMatrix; }
 	void SendMatrixDataToMap() { *m_pMapMatrix = mMatrix; }
